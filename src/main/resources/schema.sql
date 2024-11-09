@@ -1,0 +1,1 @@
+CREATE INDEX path_indx ON search_engine.pages (path(100))
