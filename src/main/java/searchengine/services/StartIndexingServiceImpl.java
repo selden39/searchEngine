@@ -6,7 +6,8 @@ import searchengine.dto.statistics.StartIndexingResponse;
 public class StartIndexingServiceImpl implements StartIndexingService{
     @Override
     public StartIndexingResponse getStartIndexing(){
-        StartIndexingResponse startIndexingResponse = new StartIndexingResponse(true);
+        StartIndexingResponse startIndexingResponse =
+                new StartIndexingResponse(true);
         return startIndexingResponse;
     }
 }

@@ -1,6 +1,7 @@
 package searchengine.dto.statistics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,11 +9,13 @@ import lombok.Setter;
 @Setter
 public class StartIndexingResponse {
     private boolean result;
+    @JsonProperty("error")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String statusDescription;
 
-    public StartIndexingResponse(boolean result, String errorDescription){
+    public StartIndexingResponse(boolean result, String statusDescription){
         this.result = result;
-        this.statusDescription = errorDescription;
+        this.statusDescription = statusDescription;
     }
 
     public StartIndexingResponse(boolean result) {
