@@ -11,6 +11,7 @@ import javax.persistence.*;
 public class Page {
 
     @Id
+    // TODO добавить @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
