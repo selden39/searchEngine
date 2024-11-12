@@ -1,6 +1,5 @@
 package searchengine.controllers;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
