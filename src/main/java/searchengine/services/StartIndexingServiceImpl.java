@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.StartIndexingResponse;
 import searchengine.model.Site;
+import searchengine.model.Status;
+import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexingexecutor.SiteMapCompiler;
 import searchengine.services.indexingexecutor.WebPage;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
@@ -18,6 +21,7 @@ import java.util.concurrent.ForkJoinPool;
 public class StartIndexingServiceImpl implements StartIndexingService{
 
     private final SiteRepository siteRepository;
+    private final PageRepository pageRepository;
     private final SitesList sites;
 
     @Override
@@ -39,21 +43,28 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     // 1. очистить таблицы site and page
         siteRepository.deleteAll();
+        pageRepository.deleteAll();
 
     // 2. заполнение таблиц с использованием ForkJoinPool
 
-        sites.getSites().forEach(site -> {
+        sites.getSites().forEach(siteFromConfig -> {
             System.out.println("=== SITE ===");
-            List<String> siteLinks = getUrlList(site.getUrl());
+            Site site = new Site();
+            site.setStatus(Status.INDEXING);
+            site.setStatusTime(LocalDateTime.now());
+            site.setUrl(siteFromConfig.getUrl());
+            site.setName(siteFromConfig.getName());
+            siteRepository.save(site);
+            List<String> siteLinks = getUrlList(site);
             siteLinks.forEach(System.out::println);
         });
 
         return startIndexingResponse;
     }
 
-    public List<String> getUrlList (String url){
+    public List<String> getUrlList (Site site){
         int level = 0;
-        WebPage rootWebPage = new WebPage(url, level);
+        WebPage rootWebPage = new WebPage(site, level, pageRepository);
         level += 1;
         List<String> urlList = new ForkJoinPool().invoke(new SiteMapCompiler(rootWebPage, level));
         return urlList;

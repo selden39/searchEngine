@@ -5,6 +5,9 @@ import lombok.Getter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import searchengine.model.Page;
+import searchengine.model.Site;
+import searchengine.repositories.PageRepository;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,7 +17,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class WebPage {
+
+    private Site site;
     private String rootUrl;
+    private PageRepository pageRepository;
     private String url;
     private final String prefix = "    ";
     @Getter
@@ -23,9 +29,11 @@ public class WebPage {
     @Getter
     private List<WebPage> children;
 
-    public WebPage(String rootUrl, String url, int level){
-        this.rootUrl = trimLastSlash(rootUrl);
+    public WebPage(Site site, String url, int level, PageRepository pageRepository){
+        this.site = site;
+        this.rootUrl = trimLastSlash(site.getUrl());
         this.url = trimLastSlash(url);
+        this.pageRepository = pageRepository;
         prettyUrl = prefix.repeat(level) + url;
         try {
             webPage = Jsoup.connect(url).get();
@@ -34,10 +42,11 @@ public class WebPage {
             System.out.println(e.getMessage());
         }
         children = new ArrayList<>();
+        savePage();
     }
 
-    public WebPage(String rootUrl, int level){
-        this(rootUrl, rootUrl, level);
+    public WebPage(Site site, int level, PageRepository pageRepository){
+        this(site, site.getUrl(), level, pageRepository);
     }
 
     public void addChildren(int level){
@@ -46,7 +55,7 @@ public class WebPage {
             //такая ситуация может произойти при https://lenta.ru/articles/2024/03/23/crocus/ -> https://lenta.ru/articles/
             try {
                 Jsoup.connect(childLink).get();
-                children.add(new WebPage(rootUrl, childLink, level));
+                children.add(new WebPage(site, childLink, level, pageRepository));
             } catch (Exception e) {
                 //e.printStackTrace();
                 System.out.println(e.getMessage());
@@ -92,5 +101,14 @@ public class WebPage {
             url = url.substring(0, url.length() - 1);
         }
         return url;
+    }
+
+    public void savePage(){
+        Page page = new Page();
+        page.setSite(site);
+        page.setPath(url);
+        page.setCode(200);
+        page.setContent(prettyUrl);
+        pageRepository.save(page);
     }
 }
