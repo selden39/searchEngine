@@ -20,7 +20,7 @@ public class Page {
     private int id;
 
     @NonNull
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn (name="site_id")
     private Site site;
 

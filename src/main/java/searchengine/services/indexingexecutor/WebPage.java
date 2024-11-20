@@ -2,6 +2,7 @@ package searchengine.services.indexingexecutor;
 
 
 import lombok.Getter;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -22,7 +23,7 @@ public class WebPage {
     private String rootUrl;
     private PageRepository pageRepository;
     private String url;
-    private final String prefix = "    ";
+    private final String prefix = "     ";
     @Getter
     private String prettyUrl;
     private Document webPage;
@@ -30,6 +31,7 @@ public class WebPage {
     private List<WebPage> children;
 
     public WebPage(Site site, String url, int level, PageRepository pageRepository){
+        //TODO подумать насчет переменных site, rootUrl, url - вск ли они нужны?
         this.site = site;
         this.rootUrl = trimLastSlash(site.getUrl());
         this.url = trimLastSlash(url);
@@ -42,7 +44,7 @@ public class WebPage {
             System.out.println(e.getMessage());
         }
         children = new ArrayList<>();
-        savePage();
+      //  savePage(200); // TODO добавление сейвПейдж приводт к тому, что страницы 3 и более уровней не обрабатываются
     }
 
     public WebPage(Site site, int level, PageRepository pageRepository){
@@ -50,14 +52,28 @@ public class WebPage {
     }
 
     public void addChildren(int level){
-        getChildrenLinks().forEach(childLink -> {
+        Set<String> childrenLinks = getChildrenLinks();
+        childrenLinks.forEach(childLink -> {
+            /*
+            Connection connection = Jsoup.connect(childLink);
+            try {
+                connection.get();
+                WebPage childWebPage = new WebPage(site, childLink, level, pageRepository);
+                children.add(childWebPage);
+                childWebPage.savePage(connection.response().statusCode());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            */
             //если по полученной ссылке не удалось получить страницу, то не добавляем такого chaild
             //такая ситуация может произойти при https://lenta.ru/articles/2024/03/23/crocus/ -> https://lenta.ru/articles/
             try {
                 Jsoup.connect(childLink).get();
                 children.add(new WebPage(site, childLink, level, pageRepository));
+                savePage(200, childLink); //TODO ошибка именно при сохранении ссылки 2го уровня https://www.lenta.ru/specprojects/editor_choice
             } catch (Exception e) {
                 //e.printStackTrace();
+         //       savePage(400, childLink);
                 System.out.println(e.getMessage());
             }
         });
@@ -103,12 +119,18 @@ public class WebPage {
         return url;
     }
 
-    public void savePage(){
+    //TODO подумать может вынести куда-то в другое место
+    public void savePage(int httpCode, String url){
         Page page = new Page();
         page.setSite(site);
         page.setPath(url);
-        page.setCode(200);
-        page.setContent(prettyUrl);
-        pageRepository.save(page);
+        page.setCode(httpCode);
+        page.setContent(url);
+        System.out.println("SAVE: " + url);
+        try {
+            pageRepository.save(page);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
