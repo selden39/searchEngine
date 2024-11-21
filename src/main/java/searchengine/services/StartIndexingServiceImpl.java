@@ -46,6 +46,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         pageRepository.deleteAll();
 
     // 2. заполнение таблиц с использованием ForkJoinPool
+        //TODO обработку каждого сайта нужно запустить в отдельном потоке
 
         sites.getSites().forEach(siteFromConfig -> {
             System.out.println("=== SITE ===");
@@ -63,10 +64,9 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     }
 
     public List<String> getUrlList (Site site){
-        int level = 0;
-        WebPage rootWebPage = new WebPage(site, level, pageRepository);
-        level += 1;
-        List<String> urlList = new ForkJoinPool().invoke(new SiteMapCompiler(rootWebPage, level, pageRepository));
+        WebPage rootWebPage = new WebPage(site, pageRepository);
+        List<String> urlList = new ForkJoinPool()
+                .invoke(new SiteMapCompiler(rootWebPage, pageRepository));
         return urlList;
     }
 

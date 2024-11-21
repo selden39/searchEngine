@@ -17,63 +17,45 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WebPage {
+public class WebPage{
 
     private Site site;
     private String rootUrl;
     private PageRepository pageRepository;
-    private String url;
-    private final String prefix = "     ";
     @Getter
-    private String prettyUrl;
+    private String url;
     private Document webPage;
     @Getter
     private List<WebPage> children;
 
-    public WebPage(Site site, String url, int level, PageRepository pageRepository){
+    public WebPage(Site site, String url, PageRepository pageRepository){
         //TODO подумать насчет переменных site, rootUrl, url - вск ли они нужны?
         this.site = site;
         this.rootUrl = trimLastSlash(site.getUrl());
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
-        prettyUrl = prefix.repeat(level) + url;
         try {
             webPage = Jsoup.connect(url).get();
         } catch (Exception e) {
-            //e.printStackTrace();
             System.out.println(e.getMessage());
         }
         children = new ArrayList<>();
-      //  savePage(200); // TODO добавление сейвПейдж приводт к тому, что страницы 3 и более уровней не обрабатываются
     }
 
-    public WebPage(Site site, int level, PageRepository pageRepository){
-        this(site, site.getUrl(), level, pageRepository);
+    public WebPage(Site site, PageRepository pageRepository){
+        this(site, site.getUrl(), pageRepository);
     }
 
-    public void addChildren(int level){
+    public void addChildren(){
         Set<String> childrenLinks = getChildrenLinks();
         childrenLinks.forEach(childLink -> {
-            /*
-            Connection connection = Jsoup.connect(childLink);
             try {
-                connection.get();
-                WebPage childWebPage = new WebPage(site, childLink, level, pageRepository);
-                children.add(childWebPage);
-                childWebPage.savePage(connection.response().statusCode());
+                Connection.Response response = Jsoup.connect(childLink).ignoreHttpErrors(true).execute();
+                savePage(response.statusCode(), childLink);
+                if(response.statusCode() == 200) {
+                    children.add(new WebPage(site, childLink, pageRepository));
+                }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-            */
-            //если по полученной ссылке не удалось получить страницу, то не добавляем такого chaild
-            //такая ситуация может произойти при https://lenta.ru/articles/2024/03/23/crocus/ -> https://lenta.ru/articles/
-            try {
-                Jsoup.connect(childLink).get();
-                children.add(new WebPage(site, childLink, level, pageRepository));
-                savePage(200, childLink); //TODO ошибка именно при сохранении ссылки 2го уровня https://www.lenta.ru/specprojects/editor_choice
-            } catch (Exception e) {
-                //e.printStackTrace();
-         //       savePage(400, childLink);
                 System.out.println(e.getMessage());
             }
         });
