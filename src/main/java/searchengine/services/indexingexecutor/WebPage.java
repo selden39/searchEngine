@@ -24,7 +24,7 @@ public class WebPage{
     private PageRepository pageRepository;
     @Getter
     private String url;
-    private Document webPage;
+    private Document webDocument;
     @Getter
     private List<WebPage> children;
 
@@ -35,7 +35,7 @@ public class WebPage{
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
         try {
-            webPage = Jsoup.connect(url).get();
+            webDocument = Jsoup.connect(url).get();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -49,23 +49,26 @@ public class WebPage{
     public void addChildren(){
         Set<String> childrenLinks = getChildrenLinks();
         childrenLinks.forEach(childLink -> {
+            Connection.Response response = null;
+            String childWebDocumentContent = "";
             try {
-                Connection.Response response = Jsoup.connect(childLink).ignoreHttpErrors(true).execute();
-                savePage(response.statusCode(), childLink);
-                if(response.statusCode() == 200) {
+                response = Jsoup.connect(childLink).ignoreHttpErrors(true).execute();
+                System.out.println("============== statusCode: " + response.statusCode() + "  ||  URL: " + childLink);
+                if (response.statusCode() == 200) {
+                    childWebDocumentContent = response.parse().toString();
                     children.add(new WebPage(site, childLink, pageRepository));
                 }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                e.getMessage();
             }
+            savePage(response.statusCode(), childLink, childWebDocumentContent);
         });
     }
 
     public Set<String> getChildrenLinks(){
         Set<String> childrenLinks = new HashSet<>();
-        Elements elements = webPage.select("a");
+        Elements elements = webDocument.select("a");
         elements.forEach(element -> {
-            //System.out.println("RAW href: " + element.attr("href"));
             String urlToAdd;
             /*
             1. с учетом примера https://www.youtube.com/ решено в дочерние вклчить не только относительные,
@@ -102,17 +105,18 @@ public class WebPage{
     }
 
     //TODO подумать может вынести куда-то в другое место
-    public void savePage(int httpCode, String url){
+    public void savePage(int httpCode, String url, String webPageContent){
         Page page = new Page();
         page.setSite(site);
-        page.setPath(url);
+        page.setPath(url.replace(rootUrl, ""));
         page.setCode(httpCode);
-        page.setContent(url);
-        System.out.println("SAVE: " + url);
+        page.setContent(webPageContent);
+
         try {
             pageRepository.save(page);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 }

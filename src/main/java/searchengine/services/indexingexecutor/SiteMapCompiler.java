@@ -22,21 +22,20 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
         List<String> urlList = new ArrayList<>();
         urlList.add(webPage.getUrl());
         List<SiteMapCompiler> taskList = new ArrayList<>();
-        for(WebPage child : webPage.getChildren()){
+        webPage.getChildren().forEach(child -> {
             SiteMapCompiler childTask = new SiteMapCompiler(child, pageRepository);
             childTask.fork();
             taskList.add(childTask);
+
             try {
                 Thread.sleep(PAUSE_BEFORE_TAKE_NEXT_CHILD);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }
-
+        });
         for(SiteMapCompiler task : taskList){
             urlList.addAll(task.join());
         }
-
         return urlList;
     }
 }
