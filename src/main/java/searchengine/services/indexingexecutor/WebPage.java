@@ -27,6 +27,7 @@ public class WebPage{
     private Document webDocument;
     @Getter
     private List<WebPage> children;
+    private final int STATUS_CODE_POSITIVE = 200;
 
     public WebPage(Site site, String url, PageRepository pageRepository){
         //TODO подумать насчет переменных site, rootUrl, url - вск ли они нужны?
@@ -46,6 +47,15 @@ public class WebPage{
         this(site, site.getUrl(), pageRepository);
     }
 
+    public WebPage(Site site, String url, PageRepository pageRepository, Document webDocument) {
+        this.site = site;
+        this.rootUrl = site.getUrl();
+        this.url = trimLastSlash(url);
+        this.pageRepository = pageRepository;
+        this.webDocument = webDocument;
+        children = new ArrayList<>();
+    }
+
     public void addChildren(){
         Set<String> childrenLinks = getChildrenLinks();
         childrenLinks.forEach(childLink -> {
@@ -53,10 +63,10 @@ public class WebPage{
             String childWebDocumentContent = "";
             try {
                 response = Jsoup.connect(childLink).ignoreHttpErrors(true).execute();
-                System.out.println("============== statusCode: " + response.statusCode() + "  ||  URL: " + childLink);
-                if (response.statusCode() == 200) {
-                    childWebDocumentContent = response.parse().toString();
-                    children.add(new WebPage(site, childLink, pageRepository));
+                if (response.statusCode() == STATUS_CODE_POSITIVE) {
+                    Document childWebDocument = response.parse();
+                    childWebDocumentContent = childWebDocument.toString();
+                    children.add(new WebPage(site, childLink, pageRepository, childWebDocument));
                 }
             } catch (Exception e) {
                 e.getMessage();
