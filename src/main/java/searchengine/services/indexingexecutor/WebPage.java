@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 public class WebPage{
 
     private Site site;
-    private String rootUrl;
     private PageRepository pageRepository;
     @Getter
     private String url;
@@ -32,7 +31,6 @@ public class WebPage{
     public WebPage(Site site, String url, PageRepository pageRepository){
         //TODO подумать насчет переменных site, rootUrl, url - вск ли они нужны?
         this.site = site;
-        this.rootUrl = trimLastSlash(site.getUrl());
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
         try {
@@ -49,7 +47,6 @@ public class WebPage{
 
     public WebPage(Site site, String url, PageRepository pageRepository, Document webDocument) {
         this.site = site;
-        this.rootUrl = site.getUrl();
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
         this.webDocument = webDocument;
@@ -92,7 +89,7 @@ public class WebPage{
             // если ссылка относительная, то обогащаем до абсолтной
             String regexpRelative = "^\\/\\S{1,}"; // относительные, некорневые ссылки
             if(element.attr("href").matches(regexpRelative)){
-                urlToAdd = rootUrl + trimLastSlash(element.attr("href"));
+                urlToAdd = site.getUrl() + trimLastSlash(element.attr("href"));
             } else {
                 urlToAdd = element.attr("href");
             }
@@ -118,7 +115,7 @@ public class WebPage{
     public void savePage(int httpCode, String url, String webPageContent){
         Page page = new Page();
         page.setSite(site);
-        page.setPath(url.replace(rootUrl, ""));
+        page.setPath(url.replace(site.getUrl(), ""));
         page.setCode(httpCode);
         page.setContent(webPageContent);
 
