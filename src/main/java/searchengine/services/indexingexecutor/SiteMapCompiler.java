@@ -1,5 +1,6 @@
 package searchengine.services.indexingexecutor;
 
+import searchengine.config.RequestParameters;
 import searchengine.repositories.PageRepository;
 
 import java.util.ArrayList;
@@ -10,10 +11,12 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
     private WebPage webPage;
     private final int PAUSE_BEFORE_TAKE_NEXT_CHILD = 200;
     private PageRepository pageRepository;
+    private final RequestParameters requestParameters;
 
-    public SiteMapCompiler(WebPage webPage, PageRepository pageRepository){
+    public SiteMapCompiler(WebPage webPage, PageRepository pageRepository, RequestParameters requestParameters){
         this.webPage = webPage;
         this.pageRepository = pageRepository;
+        this.requestParameters = requestParameters;
         this.webPage.addChildren();
     }
 
@@ -23,7 +26,7 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
         urlList.add(webPage.getUrl());
         List<SiteMapCompiler> taskList = new ArrayList<>();
         webPage.getChildren().forEach(child -> {
-            SiteMapCompiler childTask = new SiteMapCompiler(child, pageRepository);
+            SiteMapCompiler childTask = new SiteMapCompiler(child, pageRepository, requestParameters);
             childTask.fork();
             taskList.add(childTask);
 

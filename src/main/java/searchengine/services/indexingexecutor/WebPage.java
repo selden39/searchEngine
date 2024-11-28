@@ -1,11 +1,11 @@
 package searchengine.services.indexingexecutor;
 
-
 import lombok.Getter;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import searchengine.config.RequestParameters;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 public class WebPage{
 
     private Site site;
-    private PageRepository pageRepository;
+    private final PageRepository pageRepository;
+    private final RequestParameters requestParameters;
     @Getter
     private String url;
     private Document webDocument;
@@ -28,11 +28,11 @@ public class WebPage{
     private List<WebPage> children;
     private final int STATUS_CODE_POSITIVE = 200;
 
-    public WebPage(Site site, String url, PageRepository pageRepository){
-        //TODO подумать насчет переменных site, rootUrl, url - вск ли они нужны?
+    public WebPage(Site site, String url, PageRepository pageRepository, RequestParameters requestParameters){
         this.site = site;
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
+        this.requestParameters = requestParameters;
         try {
             webDocument = Jsoup.connect(url).get();
         } catch (Exception e) {
@@ -41,14 +41,15 @@ public class WebPage{
         children = new ArrayList<>();
     }
 
-    public WebPage(Site site, PageRepository pageRepository){
-        this(site, site.getUrl(), pageRepository);
+    public WebPage(Site site, PageRepository pageRepository, RequestParameters requestParameters){
+        this(site, site.getUrl(), pageRepository, requestParameters);
     }
 
-    public WebPage(Site site, String url, PageRepository pageRepository, Document webDocument) {
+    public WebPage(Site site, String url, PageRepository pageRepository, Document webDocument, RequestParameters requestParameters) {
         this.site = site;
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
+        this.requestParameters = requestParameters;
         this.webDocument = webDocument;
         children = new ArrayList<>();
     }
@@ -59,11 +60,15 @@ public class WebPage{
             Connection.Response response = null;
             String childWebDocumentContent = "";
             try {
-                response = Jsoup.connect(childLink).ignoreHttpErrors(true).execute();
+                response = Jsoup.connect(childLink)
+                        .userAgent(requestParameters.getUserAgent())
+                        .referrer(requestParameters.getReferrer())
+                        .ignoreHttpErrors(true)
+                        .execute();
                 if (response.statusCode() == STATUS_CODE_POSITIVE) {
                     Document childWebDocument = response.parse();
                     childWebDocumentContent = childWebDocument.toString();
-                    children.add(new WebPage(site, childLink, pageRepository, childWebDocument));
+                    children.add(new WebPage(site, childLink, pageRepository, childWebDocument, requestParameters));
                 }
             } catch (Exception e) {
                 e.getMessage();

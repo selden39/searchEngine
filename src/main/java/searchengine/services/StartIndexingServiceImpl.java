@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import searchengine.config.RequestParameters;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.StartIndexingResponse;
 import searchengine.model.Site;
@@ -22,6 +23,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final RequestParameters requestParameters;
     private final SitesList sites;
 
     @Override
@@ -64,9 +66,9 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     }
 
     public List<String> getUrlList (Site site){
-        WebPage rootWebPage = new WebPage(site, pageRepository);
+        WebPage rootWebPage = new WebPage(site, pageRepository, requestParameters);
         List<String> urlList = new ForkJoinPool()
-                .invoke(new SiteMapCompiler(rootWebPage, pageRepository));
+                .invoke(new SiteMapCompiler(rootWebPage, pageRepository, requestParameters));
         return urlList;
     }
 
