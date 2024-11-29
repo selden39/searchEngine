@@ -9,7 +9,9 @@ import searchengine.config.RequestParameters;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
+import searchengine.repositories.SiteRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +22,7 @@ public class WebPage{
 
     private Site site;
     private final PageRepository pageRepository;
+    private final SiteRepository siteRepository;
     private final RequestParameters requestParameters;
     @Getter
     private String url;
@@ -28,10 +31,11 @@ public class WebPage{
     private List<WebPage> children;
     private final int STATUS_CODE_POSITIVE = 200;
 
-    public WebPage(Site site, String url, PageRepository pageRepository, RequestParameters requestParameters){
+    public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
         this.site = site;
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
+        this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         try {
             webDocument = Jsoup.connect(url).get();
@@ -41,14 +45,15 @@ public class WebPage{
         children = new ArrayList<>();
     }
 
-    public WebPage(Site site, PageRepository pageRepository, RequestParameters requestParameters){
-        this(site, site.getUrl(), pageRepository, requestParameters);
+    public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
+        this(site, site.getUrl(), pageRepository, siteRepository, requestParameters);
     }
 
-    public WebPage(Site site, String url, PageRepository pageRepository, Document webDocument, RequestParameters requestParameters) {
+    public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository, Document webDocument, RequestParameters requestParameters) {
         this.site = site;
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
+        this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         this.webDocument = webDocument;
         children = new ArrayList<>();
@@ -68,12 +73,15 @@ public class WebPage{
                 if (response.statusCode() == STATUS_CODE_POSITIVE) {
                     Document childWebDocument = response.parse();
                     childWebDocumentContent = childWebDocument.toString();
-                    children.add(new WebPage(site, childLink, pageRepository, childWebDocument, requestParameters));
+                    children.add(new WebPage(site, childLink, pageRepository, siteRepository, childWebDocument, requestParameters));
                 }
             } catch (Exception e) {
                 e.getMessage();
             }
-            savePage(response.statusCode(), childLink, childWebDocumentContent);
+            if(!isThisPageSavedCheck(getRelativeUrl(url))) {
+                savePage(response.statusCode(), childLink, childWebDocumentContent);
+                changeStatusTime();
+            }
         });
     }
 
@@ -106,19 +114,17 @@ public class WebPage{
         }
         return url;
     }
-    
+
     public void savePage(int httpCode, String url, String webPageContent){
         Page page = new Page();
         page.setSite(site);
         page.setPath(getRelativeUrl(url));
         page.setCode(httpCode);
         page.setContent(webPageContent);
-        if(!isThisPageSavedCheck(getRelativeUrl(url))){
-            try {
-                pageRepository.save(page);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            pageRepository.save(page);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -129,6 +135,11 @@ public class WebPage{
     public boolean isThisPageSavedCheck(String url){
         List<Page> savedPageWithUrl = pageRepository.findByPath(url);
         return savedPageWithUrl.isEmpty() ? false : true;
+    }
+
+    public void changeStatusTime(){
+        site.setStatusTime(LocalDateTime.now());
+        siteRepository.save(site);
     }
 
 }
