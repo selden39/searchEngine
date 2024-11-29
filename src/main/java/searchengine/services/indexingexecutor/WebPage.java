@@ -82,16 +82,7 @@ public class WebPage{
         Elements elements = webDocument.select("a");
         elements.forEach(element -> {
             String urlToAdd;
-            /*
-            1. с учетом примера https://www.youtube.com/ решено в дочерние вклчить не только относительные,
-                но и абсолютные ссылки
-            2. при этом в ситуации когда у корневой есть дочерние 2 уровня,
-                https://lenta.ru/  ->   https://lenta.ru/articles/263 добавляем дочернюю https://lenta.ru/articles
-                на этапе попытке получения такой страницы или узнаем, что
-                такая сттраница дествительно есть или получаем ошибку -> не добавляем в children
-             */
 
-            // если ссылка относительная, то обогащаем до абсолтной
             String regexpRelative = "^\\/\\S{1,}"; // относительные, некорневые ссылки
             if(element.attr("href").matches(regexpRelative)){
                 urlToAdd = site.getUrl() + trimLastSlash(element.attr("href"));
@@ -115,20 +106,29 @@ public class WebPage{
         }
         return url;
     }
-
-    //TODO подумать может вынести куда-то в другое место
+    
     public void savePage(int httpCode, String url, String webPageContent){
         Page page = new Page();
         page.setSite(site);
-        page.setPath(url.replace(site.getUrl(), ""));
+        page.setPath(getRelativeUrl(url));
         page.setCode(httpCode);
         page.setContent(webPageContent);
-
-        try {
-            pageRepository.save(page);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(!isThisPageSavedCheck(getRelativeUrl(url))){
+            try {
+                pageRepository.save(page);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public String getRelativeUrl(String fullUrl){
+        return fullUrl.replace(site.getUrl(), "");
+    }
+
+    public boolean isThisPageSavedCheck(String url){
+        List<Page> savedPageWithUrl = pageRepository.findByPath(url);
+        return savedPageWithUrl.isEmpty() ? false : true;
     }
 
 }
