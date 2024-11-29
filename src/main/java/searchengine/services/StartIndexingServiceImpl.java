@@ -69,6 +69,8 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         WebPage rootWebPage = new WebPage(site, pageRepository, siteRepository, requestParameters);
         List<String> urlList = new ForkJoinPool()
                 .invoke(new SiteMapCompiler(rootWebPage, pageRepository, siteRepository, requestParameters));
+        site.setStatus(Status.INDEXED);
+        siteRepository.save(site);
         return urlList;
     }
 
