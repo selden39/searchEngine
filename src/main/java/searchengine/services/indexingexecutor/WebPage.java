@@ -31,9 +31,9 @@ public class WebPage{
     private List<WebPage> children;
     private final int STATUS_CODE_POSITIVE = 200;
 
-    public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
+    public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
         this.site = site;
-        this.url = trimLastSlash(url);
+        this.url = trimLastSlash(site.getUrl());
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
@@ -43,10 +43,6 @@ public class WebPage{
             System.out.println(e.getMessage());
         }
         children = new ArrayList<>();
-    }
-
-    public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
-        this(site, site.getUrl(), pageRepository, siteRepository, requestParameters);
     }
 
     public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository, Document webDocument, RequestParameters requestParameters) {
