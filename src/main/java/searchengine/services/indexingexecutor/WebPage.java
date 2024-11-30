@@ -78,7 +78,7 @@ public class WebPage{
             } catch (Exception e) {
                 e.getMessage();
             }
-            if(!isThisPageSavedCheck(getRelativeUrl(url))) {
+            if(!isThisPageSavedCheck(getRelativeUrl(childLink))) {
                 savePage(response.statusCode(), childLink, childWebDocumentContent);
                 changeStatusTime();
             }
