@@ -37,9 +37,10 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
         configSites.getConfigSites().forEach(configSite -> {
-            System.out.println("=== SITE ===");
-            Site site = new Site();
-            saveSitesData(configSite, site);
+
+            Site site = fillSiteData(configSite);
+            siteRepository.save(site);
+
             List<String> siteLinks = getUrlList(site);
             siteLinks.forEach(System.out::println);
         });
@@ -65,13 +66,14 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         pageRepository.deleteAll();
     }
 
-    public void saveSitesData(ConfigSite configSite, Site site){
-            System.out.println("=== SITE: " + configSite.getUrl() + " ===");
-            site.setStatus(Status.INDEXING);
-            site.setStatusTime(LocalDateTime.now());
-            site.setUrl(configSite.getUrl());
-            site.setName(configSite.getName());
-            siteRepository.save(site);
+    public Site fillSiteData(ConfigSite configSite) {
+        System.out.println("=== SITE: " + configSite.getUrl() + " ===");
+        Site site = new Site();
+        site.setStatus(Status.INDEXING);
+        site.setStatusTime(LocalDateTime.now());
+        site.setUrl(configSite.getUrl());
+        site.setName(configSite.getName());
+        return site;
     }
 
     public List<String> getUrlList (searchengine.model.Site site){
