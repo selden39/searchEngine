@@ -95,6 +95,11 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             result = true;
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            //TODO тут бы надо боле понятную ошибку выводить
+            site.setLastError(e.getMessage());
+            site.setStatus(Status.FAILED);
+            site.setStatusTime(LocalDateTime.now());
+            siteRepository.save(site);
         }
         return result;
     }
