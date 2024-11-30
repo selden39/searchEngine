@@ -3,9 +3,10 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.config.RequestParameters;
-import searchengine.config.Site;
+import searchengine.config.ConfigSite;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.StartIndexingResponse;
+import searchengine.model.Site;
 import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
@@ -35,10 +36,10 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         clearTables();
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
-        sites.getSites().forEach(siteFromConfig -> {
+        sites.getSites().forEach(configSite -> {
             System.out.println("=== SITE ===");
-            searchengine.model.Site site = new searchengine.model.Site();
-            saveSitesData(siteFromConfig, site);
+            Site site = new Site();
+            saveSitesData(configSite, site);
             List<String> siteLinks = getUrlList(site);
             siteLinks.forEach(System.out::println);
         });
@@ -54,8 +55,8 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         });
 
         System.out.println("=== print configured sites ===");
-        sites.getSites().forEach(siteFromConfig -> {
-            System.out.println(siteFromConfig.getName() + " :  " + siteFromConfig.getUrl());
+        sites.getSites().forEach(configSite -> {
+            System.out.println(configSite.getName() + " :  " + configSite.getUrl());
         });
     }
 
@@ -64,12 +65,12 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         pageRepository.deleteAll();
     }
 
-    public void saveSitesData(Site siteFromConfig, searchengine.model.Site site){
-            System.out.println("=== SITE: " + siteFromConfig.getUrl() + " ===");
+    public void saveSitesData(ConfigSite configSite, Site site){
+            System.out.println("=== SITE: " + configSite.getUrl() + " ===");
             site.setStatus(Status.INDEXING);
             site.setStatusTime(LocalDateTime.now());
-            site.setUrl(siteFromConfig.getUrl());
-            site.setName(siteFromConfig.getName());
+            site.setUrl(configSite.getUrl());
+            site.setName(configSite.getName());
             siteRepository.save(site);
     }
 
