@@ -15,7 +15,6 @@ import searchengine.services.indexingexecutor.WebPage;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
         configSites.getConfigSites().forEach(configSite -> {
-            Site site = fillSiteData(configSite);
+            Site site = fillSiteFields(configSite);
             siteRepository.save(site);
             fillPageData(site);
         });
@@ -63,7 +62,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         pageRepository.deleteAll();
     }
 
-    public Site fillSiteData(ConfigSite configSite) {
+    public Site fillSiteFields(ConfigSite configSite) {
         System.out.println("=== SITE: " + configSite.getUrl() + " ===");
         Site site = new Site();
         site.setStatus(Status.INDEXING);

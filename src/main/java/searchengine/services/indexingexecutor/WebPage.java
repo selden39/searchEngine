@@ -74,14 +74,14 @@ public class WebPage{
             } catch (Exception e) {
                 e.getMessage();
             }
-            if(!isThisPageSavedCheck(getRelativeUrl(childLink))) {
-                savePage(response.statusCode(), childLink, childWebDocumentContent);
+            if(!isThisPageAlreadySaved(getRelativeUrl(childLink))) {
+                Page childPage = fillPageFields(response.statusCode(), childLink, childWebDocumentContent);
+                pageRepository.save(childPage);
                 changeStatusTime();
             }
         });
     }
 
-    // TODO /specprojects/editor_choice - пропала
     public Set<String> getChildrenLinks(){
         Set<String> childrenLinks = new HashSet<>();
         Elements elements = webDocument.select("a");
@@ -112,24 +112,20 @@ public class WebPage{
         return url;
     }
 
-    public void savePage(int httpCode, String url, String webPageContent){
+    public Page fillPageFields(int httpCode, String url, String webPageContent) {
         Page page = new Page();
         page.setSite(site);
         page.setPath(getRelativeUrl(url));
         page.setCode(httpCode);
         page.setContent(webPageContent);
-        try {
-            pageRepository.save(page);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        return page;
     }
 
     public String getRelativeUrl(String fullUrl){
         return fullUrl.replace(site.getUrl(), "");
     }
 
-    public boolean isThisPageSavedCheck(String url){
+    public boolean isThisPageAlreadySaved(String url){
         List<Page> savedPageWithUrl = pageRepository.findByPath(url);
         return savedPageWithUrl.isEmpty() ? false : true;
     }
