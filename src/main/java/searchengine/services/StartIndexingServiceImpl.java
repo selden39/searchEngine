@@ -29,22 +29,19 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     @Override
     public StartIndexingResponse getStartIndexing(){
-        StartIndexingResponse startIndexingResponse =
-                new StartIndexingResponse(true);
 
         printDebugInfo();
         clearTables();
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
         configSites.getConfigSites().forEach(configSite -> {
-
             Site site = fillSiteData(configSite);
             siteRepository.save(site);
-
-            List<String> siteLinks = getUrlList(site);
-            siteLinks.forEach(System.out::println);
+            fillPageData(site);
         });
 
+        StartIndexingResponse startIndexingResponse =
+                new StartIndexingResponse(true);
         return startIndexingResponse;
     }
 
@@ -76,13 +73,30 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         return site;
     }
 
-    public List<String> getUrlList (searchengine.model.Site site){
-        WebPage rootWebPage = new WebPage(site, pageRepository, siteRepository, requestParameters);
-        List<String> urlList = new ForkJoinPool()
-                .invoke(new SiteMapCompiler(rootWebPage, pageRepository, siteRepository, requestParameters));
-        site.setStatus(Status.INDEXED);
-        siteRepository.save(site);
-        return urlList;
+    public boolean fillPageData(Site site){
+        boolean result = false;
+        try {
+            WebPage rootWebPage = new WebPage(
+                    site,
+                    pageRepository,
+                    siteRepository,
+                    requestParameters
+            );
+            new ForkJoinPool().invoke(new SiteMapCompiler(
+                    rootWebPage,
+                    pageRepository,
+                    siteRepository,
+                    requestParameters
+            ));
+
+            site.setStatus(Status.INDEXED);
+            siteRepository.save(site);
+
+            result = true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
     }
 
 }

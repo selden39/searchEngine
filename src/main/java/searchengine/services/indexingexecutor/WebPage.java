@@ -85,6 +85,7 @@ public class WebPage{
         });
     }
 
+    // TODO /specprojects/editor_choice - пропала
     public Set<String> getChildrenLinks(){
         Set<String> childrenLinks = new HashSet<>();
         Elements elements = webDocument.select("a");
