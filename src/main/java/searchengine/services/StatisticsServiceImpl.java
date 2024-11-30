@@ -30,11 +30,11 @@ public class StatisticsServiceImpl implements StatisticsService {
         };
 
         TotalStatistics total = new TotalStatistics();
-        total.setSites(sites.getSites().size());
+        total.setSites(sites.getConfigSites().size());
         total.setIndexing(true);
 
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
-        List<ConfigSite> sitesList = sites.getSites();
+        List<ConfigSite> sitesList = sites.getConfigSites();
         for(int i = 0; i < sitesList.size(); i++) {
             ConfigSite configSite = sitesList.get(i);
             DetailedStatisticsItem item = new DetailedStatisticsItem();

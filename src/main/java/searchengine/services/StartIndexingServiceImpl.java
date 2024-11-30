@@ -25,7 +25,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final RequestParameters requestParameters;
-    private final SitesList sites;
+    private final SitesList configSites;
 
     @Override
     public StartIndexingResponse getStartIndexing(){
@@ -36,7 +36,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         clearTables();
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
-        sites.getSites().forEach(configSite -> {
+        configSites.getConfigSites().forEach(configSite -> {
             System.out.println("=== SITE ===");
             Site site = new Site();
             saveSitesData(configSite, site);
@@ -49,13 +49,13 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     public void printDebugInfo(){
         System.out.println("=== print table before indexing ===");
-        Collection<searchengine.model.Site> currentSites = siteRepository.findAll();
+        Collection<Site> currentSites = siteRepository.findAll();
         currentSites.forEach(siteX -> {
             System.out.println(siteX.getId() + " - " + siteX.getName() + " - " + siteX.getUrl());
         });
 
         System.out.println("=== print configured sites ===");
-        sites.getSites().forEach(configSite -> {
+        configSites.getConfigSites().forEach(configSite -> {
             System.out.println(configSite.getName() + " :  " + configSite.getUrl());
         });
     }
