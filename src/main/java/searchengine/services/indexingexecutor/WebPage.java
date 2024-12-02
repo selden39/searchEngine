@@ -5,6 +5,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.orm.jpa.JpaSystemException;
 import searchengine.config.RequestParameters;
 import searchengine.model.Page;
 import searchengine.model.Site;
@@ -30,6 +31,7 @@ public class WebPage{
     @Getter
     private List<WebPage> children;
     private final int STATUS_CODE_POSITIVE = 200;
+    private final String SAVING_EXCEPTION_MESSAGE = "Sorry, but we couldn't save the page content";
 
     public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
         this.site = site;
@@ -76,7 +78,13 @@ public class WebPage{
             }
             if(!isThisPageAlreadySaved(getRelativeUrl(childLink))) {
                 Page childPage = fillPageFields(response.statusCode(), childLink, childWebDocumentContent);
-                pageRepository.save(childPage);
+                try {
+                    pageRepository.save(childPage);
+                }
+                catch (JpaSystemException jse) {
+                    childPage.setContent(SAVING_EXCEPTION_MESSAGE);
+                    pageRepository.save(childPage);
+                }
                 changeStatusTime();
             }
         });

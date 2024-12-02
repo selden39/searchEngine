@@ -15,7 +15,10 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
     private final SiteRepository siteRepository;
     private final RequestParameters requestParameters;
 
-    public SiteMapCompiler(WebPage webPage, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
+    public SiteMapCompiler (WebPage webPage,
+                           PageRepository pageRepository,
+                           SiteRepository siteRepository,
+                           RequestParameters requestParameters){
         this.webPage = webPage;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
@@ -24,7 +27,7 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
     }
 
     @Override
-    protected List<String> compute() {
+    protected List<String> compute(){
         List<String> urlList = new ArrayList<>();
         urlList.add(webPage.getUrl());
         List<SiteMapCompiler> taskList = new ArrayList<>();
