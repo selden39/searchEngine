@@ -14,6 +14,7 @@ import searchengine.services.indexingexecutor.SiteMapCompiler;
 import searchengine.services.indexingexecutor.WebPage;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 @RequiredArgsConstructor
@@ -24,27 +25,67 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final PageRepository pageRepository;
     private final RequestParameters requestParameters;
     private final SitesList configSites;
+    private String errorMessage;
+    private final String ERROR_DESC_HAS_ALREADY_RUNNING =  "Индексация не запущена, т.к. процедура индексация уже запущена и не завершена";
+    private final String ERROR_DESC_DELETING_ERROR = "Индексация не запущена, т.к. возникла ошибка при удалении данных";
+    private final String ERROR_DESC_STATUS_GETTING_ERROR =  "Индексация не запущена, т.к. возникли проблемы с получением текущих статусов сайтов";
 
     @Override
     public StartIndexingResponse getStartIndexing(){
+        StartIndexingResponse startIndexingResponse;
+        if(!checkIsPossibleToRunIndexingProcedure() || !clearTables()) {
+            System.out.println("===== Indexing procedure is already running =====");
+            startIndexingResponse =
+                    new StartIndexingResponse(false, errorMessage);
+       /* } else if (!clearTables()){
+            System.out.println("===== Problem with deleting =====");
+            startIndexingResponse =
+                    new StartIndexingResponse(false, error_message);
 
-        clearTables();
+        */
+        } else {
+            System.out.println("===== New indexing procedure starts =====");
+            startIndexingProcedure();
+            startIndexingResponse =
+                    new StartIndexingResponse(true);
+        }
+        return startIndexingResponse;
+    }
 
+    public void startIndexingProcedure() {
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
         configSites.getConfigSites().forEach(configSite -> {
             Site site = fillSiteFields(configSite);
             siteRepository.save(site);
             fillPageData(site);
         });
-
-        StartIndexingResponse startIndexingResponse =
-                new StartIndexingResponse(true);
-        return startIndexingResponse;
     }
 
-    public void clearTables(){
-        siteRepository.deleteAll();
-        pageRepository.deleteAll();
+    public boolean checkIsPossibleToRunIndexingProcedure(){
+        try {
+            boolean result = true;
+            List<Site> indexingSites = siteRepository.findByStatus(Status.INDEXING);
+            if (!indexingSites.isEmpty()) {
+                errorMessage = ERROR_DESC_HAS_ALREADY_RUNNING;
+                result = false;
+            }
+            return result;
+        } catch (Exception e) {
+            errorMessage = ERROR_DESC_STATUS_GETTING_ERROR;
+            return false;
+        }
+    }
+
+    public boolean clearTables() {
+        boolean result = true;
+        try {
+            siteRepository.deleteAll();
+            pageRepository.deleteAll();
+        } catch (Exception e) {
+            errorMessage = ERROR_DESC_DELETING_ERROR;
+            result = false;
+        }
+        return result;
     }
 
     public Site fillSiteFields(ConfigSite configSite) {
