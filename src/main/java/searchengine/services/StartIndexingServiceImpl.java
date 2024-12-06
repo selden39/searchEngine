@@ -14,7 +14,6 @@ import searchengine.services.indexingexecutor.SiteMapCompiler;
 import searchengine.services.indexingexecutor.WebPage;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.concurrent.ForkJoinPool;
 
 @RequiredArgsConstructor
@@ -29,7 +28,6 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     @Override
     public StartIndexingResponse getStartIndexing(){
 
-        printDebugInfo();
         clearTables();
 
         //TODO обработку каждого сайта нужно запустить в отдельном потоке
@@ -44,26 +42,12 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         return startIndexingResponse;
     }
 
-    public void printDebugInfo(){
-        System.out.println("=== print table before indexing ===");
-        Collection<Site> currentSites = siteRepository.findAll();
-        currentSites.forEach(siteX -> {
-            System.out.println(siteX.getId() + " - " + siteX.getName() + " - " + siteX.getUrl());
-        });
-
-        System.out.println("=== print configured sites ===");
-        configSites.getConfigSites().forEach(configSite -> {
-            System.out.println(configSite.getName() + " :  " + configSite.getUrl());
-        });
-    }
-
     public void clearTables(){
         siteRepository.deleteAll();
         pageRepository.deleteAll();
     }
 
     public Site fillSiteFields(ConfigSite configSite) {
-        System.out.println("=== SITE: " + configSite.getUrl() + " ===");
         Site site = new Site();
         site.setStatus(Status.INDEXING);
         site.setStatusTime(LocalDateTime.now());
@@ -72,8 +56,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         return site;
     }
 
-    public boolean fillPageData(Site site){
-        boolean result = false;
+    public void fillPageData(Site site){
         try {
             WebPage rootWebPage = new WebPage(
                     site,
@@ -90,17 +73,11 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
             site.setStatus(Status.INDEXED);
             siteRepository.save(site);
-
-            result = true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            //TODO тут бы надо боле понятную ошибку выводить
             site.setLastError(e.getMessage());
             site.setStatus(Status.FAILED);
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
         }
-        return result;
     }
-
 }

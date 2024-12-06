@@ -142,5 +142,4 @@ public class WebPage{
         site.setStatusTime(LocalDateTime.now());
         siteRepository.save(site);
     }
-
 }
