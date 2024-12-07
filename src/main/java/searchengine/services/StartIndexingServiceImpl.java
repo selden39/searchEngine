@@ -11,6 +11,7 @@ import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexingexecutor.SiteMapCompiler;
+import searchengine.services.indexingexecutor.ThreadCollector;
 import searchengine.services.indexingexecutor.WebPage;
 
 import java.time.LocalDateTime;
@@ -59,7 +60,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             };
             final Thread thread = new Thread(task);
             thread.start();
-
+            ThreadCollector.addIndexingThread(thread);
         });
     }
 
