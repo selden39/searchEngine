@@ -19,11 +19,13 @@ spring:
     show-sql: true
 
 indexing-settings:
-  sites:
+  configSites:
     - url: https://www.lenta.ru
       name: Лента.ру
-    - url: https://www.skillbox.ru
-      name: Skillbox
+    - url: https://volochek.life/
+      name: volochek
+    - url: https://radiomv.ru/
+      name: policeRadio
     - url: https://www.playback.ru
       name: PlayBack.Ru
 

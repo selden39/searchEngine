@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
+import static java.lang.Thread.currentThread;
+
 @RequiredArgsConstructor
 @Service
 public class StartIndexingServiceImpl implements StartIndexingService{
@@ -34,17 +36,9 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     public StartIndexingResponse getStartIndexing(){
         StartIndexingResponse startIndexingResponse;
         if(!checkIsPossibleToRunIndexingProcedure() || !clearTables()) {
-            System.out.println("===== Indexing procedure is already running =====");
             startIndexingResponse =
                     new StartIndexingResponse(false, errorMessage);
-       /* } else if (!clearTables()){
-            System.out.println("===== Problem with deleting =====");
-            startIndexingResponse =
-                    new StartIndexingResponse(false, error_message);
-
-        */
         } else {
-            System.out.println("===== New indexing procedure starts =====");
             startIndexingProcedure();
             startIndexingResponse =
                     new StartIndexingResponse(true);
@@ -53,11 +47,19 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     }
 
     public void startIndexingProcedure() {
-        //TODO обработку каждого сайта нужно запустить в отдельном потоке
         configSites.getConfigSites().forEach(configSite -> {
+
             Site site = fillSiteFields(configSite);
             siteRepository.save(site);
-            fillPageData(site);
+
+            final Runnable task = () -> {
+                System.out.println("======== START THREAD: " + currentThread().getName()
+                        + "SITE: " + site.getUrl());
+                fillPageData(site);
+            };
+            final Thread thread = new Thread(task);
+            thread.start();
+
         });
     }
 
