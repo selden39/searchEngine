@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.config.RequestParameters;
 import searchengine.config.ConfigSite;
 import searchengine.config.SitesList;
-import searchengine.dto.statistics.StartIndexingResponse;
+import searchengine.dto.statistics.OperationIndexingResponse;
 import searchengine.model.Site;
 import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
@@ -33,17 +33,17 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final String ERROR_DESC_STATUS_GETTING_ERROR =  "Индексация не запущена, т.к. возникли проблемы с получением текущих статусов сайтов";
 
     @Override
-    public StartIndexingResponse getStartIndexing(){
-        StartIndexingResponse startIndexingResponse;
+    public OperationIndexingResponse getStartIndexing(){
+        OperationIndexingResponse operationIndexingResponse;
         if(!checkIsPossibleToRunIndexingProcedure() || !clearTables()) {
-            startIndexingResponse =
-                    new StartIndexingResponse(false, errorMessage);
+            operationIndexingResponse =
+                    new OperationIndexingResponse(false, errorMessage);
         } else {
             startIndexingProcedure();
-            startIndexingResponse =
-                    new StartIndexingResponse(true);
+            operationIndexingResponse =
+                    new OperationIndexingResponse(true);
         }
-        return startIndexingResponse;
+        return operationIndexingResponse;
     }
 
     public void startIndexingProcedure() {

@@ -7,18 +7,18 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StartIndexingResponse {
+public class OperationIndexingResponse {
     private boolean result;
     @JsonProperty("error")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String statusDescription;
 
-    public StartIndexingResponse(boolean result, String statusDescription){
+    public OperationIndexingResponse(boolean result, String statusDescription){
         this.result = result;
         this.statusDescription = statusDescription;
     }
 
-    public StartIndexingResponse(boolean result) {
+    public OperationIndexingResponse(boolean result) {
         this.result = result;
         this.statusDescription = null;
     }
