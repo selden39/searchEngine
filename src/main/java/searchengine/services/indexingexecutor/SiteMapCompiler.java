@@ -42,6 +42,7 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
                 throw new RuntimeException(e);
             }
         });
+        // TODO urlList по сути и не нужен, подумать насчет удаления
         for(SiteMapCompiler task : taskList){
             urlList.addAll(task.join());
         }

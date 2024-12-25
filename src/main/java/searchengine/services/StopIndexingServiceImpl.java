@@ -7,7 +7,7 @@ import searchengine.services.indexingexecutor.ThreadCollector;
 import searchengine.services.indexinginterrupter.IndexingInterrupter;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+
 
 @RequiredArgsConstructor
 @Service
@@ -17,23 +17,17 @@ public class StopIndexingServiceImpl implements StopIndexingService{
     public OperationIndexingResponse getStopIndexing(){
         OperationIndexingResponse operationIndexingResponse;
 
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        System.out.println("============ ThreadSet before =========");
-        threadSet.forEach(thread -> {
-            System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
-        });
-
-        ThreadCollector.getIndexingThreads().forEach(thread -> {
+        ThreadCollector.getIndexingThreads().forEach((thread, forkJoinPool) -> {
             Thread interrupter = new Thread(new IndexingInterrupter(thread));
-            System.out.println("========== Thread to interrupt : " + thread.getName());
-
             interrupter.start();
-        });
-
-        Set<Thread> threadSet2 = Thread.getAllStackTraces().keySet();
-        System.out.println("============ ThreadSet after =========");
-        threadSet2.forEach(thread -> {
-            System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
+            System.out.println("+++++++++++++++++");
+            System.out.println(thread.getName() + " - " + thread.isInterrupted());
+            System.out.println(forkJoinPool + ": " + forkJoinPool.getRunningThreadCount());
+            System.out.println(forkJoinPool.isShutdown());
+            forkJoinPool.shutdownNow();
+            System.out.println(forkJoinPool.isShutdown());
+            System.out.println("------------------");
+            System.out.println(thread.isInterrupted());
         });
 
         LocalDateTime now = LocalDateTime.now();

@@ -1,17 +1,18 @@
 package searchengine.services.indexingexecutor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 
 //TODO подумать над применением lombok аннотаций
 public class ThreadCollector {
-    public static Set<Thread> indexingThreads = new HashSet<>();
+    public static HashMap<Thread, ForkJoinPool> indexingThreads = new HashMap<>();
 
-    public static void addIndexingThread(Thread thread){
-        indexingThreads.add(thread);
+    public static void addIndexingThread(Thread thread, ForkJoinPool forkJoinPool){
+        indexingThreads.put(thread, forkJoinPool);
     }
 
-    public static Set<Thread> getIndexingThreads(){
+    public static Map<Thread, ForkJoinPool> getIndexingThreads(){
         return indexingThreads;
     }
 }

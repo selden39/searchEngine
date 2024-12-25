@@ -18,8 +18,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
-import static java.lang.Thread.currentThread;
-
 @RequiredArgsConstructor
 @Service
 public class StartIndexingServiceImpl implements StartIndexingService{
@@ -32,6 +30,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final String ERROR_DESC_HAS_ALREADY_RUNNING =  "Индексация не запущена, т.к. процедура индексация уже запущена и не завершена";
     private final String ERROR_DESC_DELETING_ERROR = "Индексация не запущена, т.к. возникла ошибка при удалении данных";
     private final String ERROR_DESC_STATUS_GETTING_ERROR =  "Индексация не запущена, т.к. возникли проблемы с получением текущих статусов сайтов";
+    private final String ERROR_DESC_INTERRUPTED_BY_STOP_REQUEST = "Индексация остановлена пользователем";
 
     @Override
     public OperationIndexingResponse getStartIndexing(){
@@ -53,14 +52,14 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             Site site = fillSiteFields(configSite);
             siteRepository.save(site);
 
+            ForkJoinPool forkJoinPool = new ForkJoinPool();
+
             final Runnable task = () -> {
-                System.out.println("======== START THREAD: " + currentThread().getName()
-                        + "SITE: " + site.getUrl());
-                fillPageData(site);
+                fillPageData(site, forkJoinPool);
             };
             final Thread thread = new Thread(task);
             thread.start();
-            ThreadCollector.addIndexingThread(thread);
+            ThreadCollector.addIndexingThread(thread, forkJoinPool);
         });
     }
 
@@ -100,7 +99,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         return site;
     }
 
-    public void fillPageData(Site site){
+    public void fillPageData(Site site, ForkJoinPool forkJoinPool){
         try {
             WebPage rootWebPage = new WebPage(
                     site,
@@ -108,7 +107,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
                     siteRepository,
                     requestParameters
             );
-            new ForkJoinPool().invoke(new SiteMapCompiler(
+            forkJoinPool.invoke(new SiteMapCompiler(
                     rootWebPage,
                     pageRepository,
                     siteRepository,
@@ -123,5 +122,16 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
         }
+
+    }
+
+    public void addSiteDataByException(Exception e){
+        System.out.println(e.getMessage());
+        System.out.println("======" );
+        System.out.println(e.getCause());
+        System.out.println("++++++++++");
+        System.out.println(e.getClass());
+        System.out.println("--------------");
+
     }
 }

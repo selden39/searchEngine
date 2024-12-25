@@ -9,7 +9,6 @@ public class IndexingInterrupter implements Runnable{
 
     @Override
     public void run(){
-        System.out.println("call interrupt");
         thread.interrupt();
     }
 }
