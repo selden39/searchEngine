@@ -24,9 +24,6 @@ public class SiteMapCompiler extends RecursiveTask<List<String>> {
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         this.webPage.addChildren();
-        System.out.println("===== Thread: " + Thread.currentThread().getName()
-                + "webPage: " + webPage.getUrl());
-        ThreadCollector.addIndexingThread(Thread.currentThread());
     }
 
     @Override

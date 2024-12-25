@@ -19,12 +19,7 @@ public class StopIndexingServiceImpl implements StopIndexingService{
 
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         System.out.println("============ ThreadSet before =========");
-        /*
         threadSet.forEach(thread -> {
-            System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
-        });
-         */
-        ThreadCollector.getIndexingThreads().forEach(thread -> {
             System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
         });
 
@@ -37,14 +32,10 @@ public class StopIndexingServiceImpl implements StopIndexingService{
 
         Set<Thread> threadSet2 = Thread.getAllStackTraces().keySet();
         System.out.println("============ ThreadSet after =========");
-        ThreadCollector.getIndexingThreads().forEach(thread -> {
-            System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
-        });
-        /*
         threadSet2.forEach(thread -> {
             System.out.println(thread.getName() + " - interrupted: " + thread.isInterrupted());
         });
-*/
+
         LocalDateTime now = LocalDateTime.now();
         operationIndexingResponse = new OperationIndexingResponse(true, now.toString());
         return operationIndexingResponse;

@@ -2,10 +2,10 @@ package searchengine.services.indexingexecutor;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
+//TODO подумать над применением lombok аннотаций
 public class ThreadCollector {
-    public static Set<Thread> indexingThreads = new CopyOnWriteArraySet<>();
+    public static Set<Thread> indexingThreads = new HashSet<>();
 
     public static void addIndexingThread(Thread thread){
         indexingThreads.add(thread);
