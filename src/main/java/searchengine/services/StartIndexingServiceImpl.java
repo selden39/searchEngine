@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 import searchengine.config.RequestParameters;
 import searchengine.config.ConfigSite;
@@ -13,6 +14,7 @@ import searchengine.repositories.SiteRepository;
 import searchengine.services.indexingexecutor.SiteMapCompiler;
 import searchengine.services.indexingexecutor.ThreadCollector;
 import searchengine.services.indexingexecutor.WebPage;
+import searchengine.services.stopindexingexecutor.LastErrorMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -117,21 +119,14 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             site.setStatus(Status.INDEXED);
             siteRepository.save(site);
         } catch (Exception e) {
-            site.setLastError(e.getMessage());
+            String lastErrorMessage = LastErrorMessage.getLastErrorMessage().isEmpty()
+                    ? e.getMessage()
+                    : LastErrorMessage.getLastErrorMessage();
+            site.setLastError(lastErrorMessage);
             site.setStatus(Status.FAILED);
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
         }
-
-    }
-
-    public void addSiteDataByException(Exception e){
-        System.out.println(e.getMessage());
-        System.out.println("======" );
-        System.out.println(e.getCause());
-        System.out.println("++++++++++");
-        System.out.println(e.getClass());
-        System.out.println("--------------");
 
     }
 }
