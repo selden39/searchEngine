@@ -126,6 +126,6 @@ public class StartIndexingServiceImpl implements StartIndexingService{
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
         }
-
+        ThreadCollector.removeIndexingThread(Thread.currentThread());
     }
 }

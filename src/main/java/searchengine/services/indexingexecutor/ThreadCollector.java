@@ -14,4 +14,8 @@ public class ThreadCollector {
     public static Map<Thread, ForkJoinPool> getIndexingThreads(){
         return indexingThreads;
     }
+
+    public static void removeIndexingThread(Thread thread){
+        indexingThreads.remove(thread);
+    }
 }
