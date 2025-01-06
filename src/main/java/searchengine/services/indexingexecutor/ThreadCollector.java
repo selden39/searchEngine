@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 
-//TODO подумать над применением lombok аннотаций
 public class ThreadCollector {
     public static HashMap<Thread, ForkJoinPool> indexingThreads = new HashMap<>();
 

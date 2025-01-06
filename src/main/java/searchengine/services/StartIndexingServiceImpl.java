@@ -32,7 +32,6 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final String ERROR_DESC_HAS_ALREADY_RUNNING =  "Индексация не запущена, т.к. процедура индексация уже запущена и не завершена";
     private final String ERROR_DESC_DELETING_ERROR = "Индексация не запущена, т.к. возникла ошибка при удалении данных";
     private final String ERROR_DESC_STATUS_GETTING_ERROR =  "Индексация не запущена, т.к. возникли проблемы с получением текущих статусов сайтов";
-    private final String ERROR_DESC_INTERRUPTED_BY_STOP_REQUEST = "Индексация остановлена пользователем";
 
     @Override
     public OperationIndexingResponse getStartIndexing(){
