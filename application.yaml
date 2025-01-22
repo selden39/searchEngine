@@ -20,7 +20,7 @@ spring:
 
 indexing-settings:
   configSites:
-    - url: https://www.lenta.ru
+    - url: https://www.lEnta.ru
       name: Лента.ру
     - url: https://volochek.life/
       name: volochek

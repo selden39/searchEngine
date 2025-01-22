@@ -47,11 +47,11 @@ public class Lemmatizer {
         return lemmas;
     }
 
-    public static String convertHtml2text (String html){
+    private static String convertHtml2text (String html){
         return Jsoup.parse(html).text();
     }
 
-    public String[] splitTextIntoWords(String text) {
+    private String[] splitTextIntoWords(String text) {
         String regexReplace = "[^\\sа-я]"; // все, что не пробелы и не буквы и цифры
         String[] onlyRussianWords = text
                 .toLowerCase(Locale.ROOT)
