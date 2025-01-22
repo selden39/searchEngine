@@ -4,17 +4,21 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
+import searchengine.config.ConfigSite;
 import searchengine.config.RequestParameters;
 import searchengine.config.SitesList;
 import searchengine.dto.IndexPage;
 import searchengine.dto.statistics.OperationIndexingResponse;
 import searchengine.model.Site;
+import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.utils.UrlHandler;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -30,28 +34,38 @@ public class IndexPageServiceImpl implements IndexPageService{
 
     @Override
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
-        OperationIndexingResponse operationIndexingResponse;
-
-        // проверка, что сайт наш
+     // проверка, что сайт наш и сразу возвращаем этот сайт, чтобы его потом создать, если не нашли в базе
+/*
         if (!isPageFromConfigSites(indexPage)){
             return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
+*/
+        Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
+        if(!configSiteForIndexPage.isPresent()){
+            return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
+        }
 
-        // получение html
+     // получение html
         try {
             String html = getIndexPageHtml(indexPage);
         } catch (IOException e) {
             return new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
         }
 
-        // добавлен ли сайт? -> добавить
-        saveIndexPageSite(indexPage);
+     // добавлен ли сайт? -> добавить
+        List<Site> sitesForIndexPage = getSiteFromSiteRepository(indexPage);
+        Site siteForIndexPage;
+        if(sitesForIndexPage.isEmpty()) {
+            siteForIndexPage = saveIndexPageSite(configSiteForIndexPage.get());
+        } else {
+            siteForIndexPage = sitesForIndexPage.get(0);
+        }
+
 
         // добавлена ли страница -> добавить страницу и леммы
         // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
 
         // отправка ответа
-        isPageFromConfigSites(indexPage);
 
         return null;
     }
@@ -68,6 +82,13 @@ public class IndexPageServiceImpl implements IndexPageService{
                 });
     }
 
+    private Optional<ConfigSite> getConfigSiteByIndexPage(IndexPage indexPage){
+        return configSites.getConfigSites().stream()
+                .filter(configSite ->
+                    UrlHandler.getPrettyRootUrl(configSite.getUrl()).equals(UrlHandler.getPrettyRootUrl(indexPage.getUrl())))
+                .findFirst();
+    }
+
     private String getIndexPageHtml(IndexPage indexPage) throws IOException {
         Document webDocument = Jsoup.connect(indexPage.getUrl())
                 .userAgent(requestParameters.getUserAgent())
@@ -76,10 +97,21 @@ public class IndexPageServiceImpl implements IndexPageService{
         return webDocument.toString();
     }
 
-    private void saveIndexPageSite (IndexPage indexPage){
-        List<Site> indexPageSiteList = siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(indexPage.getUrl()));
-        indexPageSiteList.forEach(site -> {
-            System.out.println("******" + site.getUrl());
-        });
+    private List<Site> getSiteFromSiteRepository(IndexPage indexPage){
+        return siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(indexPage.getUrl()));
+    }
+
+    private Site saveIndexPageSite (ConfigSite configSiteForIndexPage){
+        Site site = fillSiteFields(configSiteForIndexPage);
+        return siteRepository.save(site);
+    }
+
+    public Site fillSiteFields(ConfigSite configSite) {
+        Site site = new Site();
+        site.setStatus(Status.FAILED);
+        site.setStatusTime(LocalDateTime.now());
+        site.setUrl(UrlHandler.getPrettyRootUrl(configSite.getUrl()));
+        site.setName(configSite.getName());
+        return site;
     }
 }
