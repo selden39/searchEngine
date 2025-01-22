@@ -4,13 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
+import searchengine.config.RequestParameters;
 import searchengine.config.SitesList;
 import searchengine.dto.IndexPage;
 import searchengine.dto.statistics.OperationIndexingResponse;
+import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.utils.UrlHandler;
 
 import java.io.IOException;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -19,6 +23,7 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final SitesList configSites;
+    private final RequestParameters requestParameters;
     private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, \n" +
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
@@ -29,20 +34,18 @@ public class IndexPageServiceImpl implements IndexPageService{
 
         // проверка, что сайт наш
         if (!isPageFromConfigSites(indexPage)){
-            operationIndexingResponse = new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
-            return operationIndexingResponse;
+            return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
 
         // получение html
         try {
             String html = getIndexPageHtml(indexPage);
         } catch (IOException e) {
-            operationIndexingResponse = new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
-            return operationIndexingResponse;
+            return new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
         }
 
         // добавлен ли сайт? -> добавить
-
+        saveIndexPageSite(indexPage);
 
         // добавлена ли страница -> добавить страницу и леммы
         // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
@@ -55,9 +58,9 @@ public class IndexPageServiceImpl implements IndexPageService{
 
     private boolean isPageFromConfigSites(IndexPage indexPage){
         return configSites.getConfigSites().stream()
-                .map(configSite -> configSite.getUrl().toLowerCase())
+                .map(configSite -> UrlHandler.getPrettyRootUrl(configSite.getUrl()))
                 .anyMatch(configSiteUrl -> {
-                    if (indexPage.getUrl().toLowerCase().indexOf(configSiteUrl) == 0){
+                    if (UrlHandler.getPrettyRootUrl(indexPage.getUrl()).indexOf(configSiteUrl) == 0){
                         return true;
                     } else {
                         return false;
@@ -66,7 +69,17 @@ public class IndexPageServiceImpl implements IndexPageService{
     }
 
     private String getIndexPageHtml(IndexPage indexPage) throws IOException {
-        Document webDocument = Jsoup.connect(indexPage.getUrl()).get();
+        Document webDocument = Jsoup.connect(indexPage.getUrl())
+                .userAgent(requestParameters.getUserAgent())
+                .referrer(requestParameters.getReferrer())
+                .get();
         return webDocument.toString();
+    }
+
+    private void saveIndexPageSite (IndexPage indexPage){
+        List<Site> indexPageSiteList = siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(indexPage.getUrl()));
+        indexPageSiteList.forEach(site -> {
+            System.out.println("******" + site.getUrl());
+        });
     }
 }

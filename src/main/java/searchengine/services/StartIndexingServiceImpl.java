@@ -15,6 +15,7 @@ import searchengine.services.indexingexecutor.SiteMapCompiler;
 import searchengine.services.indexingexecutor.ThreadCollector;
 import searchengine.services.indexingexecutor.WebPage;
 import searchengine.services.stopindexingexecutor.LastErrorMessage;
+import searchengine.utils.UrlHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -95,7 +96,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
         Site site = new Site();
         site.setStatus(Status.INDEXING);
         site.setStatusTime(LocalDateTime.now());
-        site.setUrl(configSite.getUrl());
+        site.setUrl(UrlHandler.getPrettyRootUrl(configSite.getUrl()));
         site.setName(configSite.getName());
         return site;
     }

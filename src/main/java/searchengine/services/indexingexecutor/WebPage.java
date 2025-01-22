@@ -40,7 +40,10 @@ public class WebPage{
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         try {
-            webDocument = Jsoup.connect(url).get();
+            webDocument = Jsoup.connect(url)
+                    .userAgent(requestParameters.getUserAgent())
+                    .referrer(requestParameters.getReferrer())
+                    .get();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
