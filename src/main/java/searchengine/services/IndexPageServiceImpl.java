@@ -34,12 +34,8 @@ public class IndexPageServiceImpl implements IndexPageService{
 
     @Override
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
+
      // проверка, что сайт наш и сразу возвращаем этот сайт, чтобы его потом создать, если не нашли в базе
-/*
-        if (!isPageFromConfigSites(indexPage)){
-            return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
-        }
-*/
         Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
         if(!configSiteForIndexPage.isPresent()){
             return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
@@ -53,14 +49,13 @@ public class IndexPageServiceImpl implements IndexPageService{
         }
 
      // добавлен ли сайт? -> добавить
-        List<Site> sitesForIndexPage = getSiteFromSiteRepository(indexPage);
-        Site siteForIndexPage;
-        if(sitesForIndexPage.isEmpty()) {
-            siteForIndexPage = saveIndexPageSite(configSiteForIndexPage.get());
+        List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPage);
+        Site repositorySiteByIndexPage;
+        if(repositorySitesByIndexPage.isEmpty()) {
+            repositorySiteByIndexPage = saveIndexPageSite(configSiteForIndexPage.get());
         } else {
-            siteForIndexPage = sitesForIndexPage.get(0);
+            repositorySiteByIndexPage = repositorySitesByIndexPage.get(0);
         }
-
 
         // добавлена ли страница -> добавить страницу и леммы
         // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
@@ -68,18 +63,6 @@ public class IndexPageServiceImpl implements IndexPageService{
         // отправка ответа
 
         return null;
-    }
-
-    private boolean isPageFromConfigSites(IndexPage indexPage){
-        return configSites.getConfigSites().stream()
-                .map(configSite -> UrlHandler.getPrettyRootUrl(configSite.getUrl()))
-                .anyMatch(configSiteUrl -> {
-                    if (UrlHandler.getPrettyRootUrl(indexPage.getUrl()).indexOf(configSiteUrl) == 0){
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
     }
 
     private Optional<ConfigSite> getConfigSiteByIndexPage(IndexPage indexPage){
