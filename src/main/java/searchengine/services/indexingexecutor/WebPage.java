@@ -42,10 +42,13 @@ public class WebPage{
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         try {
-            webDocument = Jsoup.connect(url)
+            Connection.Response response = Jsoup.connect(url)
                     .userAgent(requestParameters.getUserAgent())
                     .referrer(requestParameters.getReferrer())
-                    .get();
+                    .ignoreHttpErrors(true)
+                    .execute();
+            webDocument = response.parse();
+            savePage(response.statusCode(), site.getUrl(), webDocument.toString());
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -82,17 +85,21 @@ public class WebPage{
                 e.getMessage();
             }
             if(!isThisPageAlreadySaved(getRelativeUrl(childLink))) {
-                Page childPage = fillPageFields(response.statusCode(), childLink, childWebDocumentContent);
-                try {
-                    pageRepository.save(childPage);
-                }
-                catch (JpaSystemException jse) {
-                    childPage.setContent(SAVING_EXCEPTION_MESSAGE);
-                    pageRepository.save(childPage);
-                }
-                changeStatusTime();
+                savePage(response.statusCode(), childLink, childWebDocumentContent);
             }
         });
+    }
+
+    private void savePage(int statusCode, String pageUrl, String webDocumentContent){
+        Page page = fillPageFields(statusCode, pageUrl, webDocumentContent);
+        try {
+            pageRepository.save(page);
+        }
+        catch (JpaSystemException jse) {
+            page.setContent(SAVING_EXCEPTION_MESSAGE);
+            pageRepository.save(page);
+        }
+        changeStatusTime();
     }
 
     public Set<String> getChildrenLinks(){
@@ -128,7 +135,7 @@ public class WebPage{
     public Page fillPageFields(int httpCode, String url, String webPageContent) {
         Page page = new Page();
         page.setSite(site);
-        page.setPath(getRelativeUrl(url));
+        page.setPath(getRelativeUrl(url).isEmpty() ? "/" : getRelativeUrl(url));
         page.setCode(httpCode);
         page.setContent(webPageContent);
         return page;
