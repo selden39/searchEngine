@@ -121,17 +121,7 @@ public class IndexPageServiceImpl implements IndexPageService{
 
     public List<Page> getRepositoryPageByIndexPage(IndexPage indexPage, Site repositorySitesByIndexPage) throws MalformedURLException {
         return pageRepository.findByPathAndSite(
-                getPathFromUrl(indexPage.getUrl())
+                UrlHandler.getPathFromUrl(indexPage.getUrl())
                 , repositorySitesByIndexPage);
-    }
-
-    private String getPathFromUrl (String url) throws MalformedURLException {
-        String path = new URL(url).getPath();
-        if(!path.isEmpty()) {
-            path = path.endsWith("/")
-                    ? path.substring(0, path.length() - 1)
-                    : path;
-        }
-        return path;
     }
 }

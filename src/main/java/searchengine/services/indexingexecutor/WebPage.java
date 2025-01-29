@@ -11,7 +11,9 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.utils.UrlHandler;
 
+import java.net.MalformedURLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -133,11 +135,18 @@ public class WebPage{
     }
 
     public String getRelativeUrl(String fullUrl){
-        return fullUrl.replace(site.getUrl(), "");
+        String path;
+        try {
+            path = UrlHandler.getPathFromUrl(fullUrl);
+        } catch (MalformedURLException e) {
+            path = fullUrl.replace(site.getUrl(), "");
+        }
+        return path;
     }
 
     public boolean isThisPageAlreadySaved(String url){
-        List<Page> savedPageWithUrl = pageRepository.findByPath(url);
+        // 3 TODO тут, пожалуй надо доработать, т.к. поиск должен быть по Path и Site
+        List<Page> savedPageWithUrl = pageRepository.findByPathAndSite(url, site);
         return savedPageWithUrl.isEmpty() ? false : true;
     }
 
