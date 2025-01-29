@@ -152,7 +152,6 @@ public class WebPage{
     }
 
     public boolean isThisPageAlreadySaved(String url){
-        // 3 TODO тут, пожалуй надо доработать, т.к. поиск должен быть по Path и Site
         List<Page> savedPageWithUrl = pageRepository.findByPathAndSite(url, site);
         return savedPageWithUrl.isEmpty() ? false : true;
     }
