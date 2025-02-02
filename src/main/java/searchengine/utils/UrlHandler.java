@@ -24,13 +24,16 @@ public class UrlHandler {
         }catch (MalformedURLException e) {
             path = url.replace(getPrettyRootUrl(url), "");
         }
+        if(path.equals("/")){
+            return path;
+        }
         if(path.isEmpty()) {
             path = "/";
-        } else {
-            path = path.endsWith("/")
-                    ? path.substring(0, path.length() - 1)
-                    : path;
+            return path;
         }
+        path = path.endsWith("/")
+                ? path.substring(0, path.length() - 1)
+                : path;
         return path;
     }
 }

@@ -31,7 +31,7 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final PageRepository pageRepository;
     private final SitesList configSites;
     private final RequestParameters requestParameters;
-    private Page page;
+    private Page page = new Page();
     private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, \n" +
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
@@ -70,12 +70,10 @@ public class IndexPageServiceImpl implements IndexPageService{
             return new OperationIndexingResponse(false, ERROR_DESC_GET_PATH_ERROR);
         }
 
-        // TODO что делать, если path русто?
         if (repositoryPage.isEmpty()){
-            System.out.println("В БД нет такой страницы");
             page.setSite(repositorySiteByIndexPage);
-
-            // добавить страницу в БД
+            page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
+            pageRepository.save(page);
             // лемматизация (таблицы lemma + index)
 
         }
