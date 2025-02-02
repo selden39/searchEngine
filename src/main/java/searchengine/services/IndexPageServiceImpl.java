@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,6 @@ import searchengine.utils.UrlHandler;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +31,7 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final PageRepository pageRepository;
     private final SitesList configSites;
     private final RequestParameters requestParameters;
+    private Page page;
     private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, \n" +
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
@@ -45,15 +46,14 @@ public class IndexPageServiceImpl implements IndexPageService{
             return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
 
-     // получение html
-        String html;
+     // получение html и statusCode
         try {
-            html = getIndexPageHtml(indexPage);
+            fillIndexPageHtmlAndStatusCode(indexPage);
         } catch (IOException e) {
             return new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
         }
 
-     // добавлен ли сайт? -> добавить
+     // добавлен ли сайт? -> добавить и добавить сайт в page
         List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPage);
         Site repositorySiteByIndexPage;
         if(repositorySitesByIndexPage.isEmpty()) {
@@ -63,7 +63,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         }
 
         // добавлена ли страница -> добавить страницу и леммы
-        List<Page> repositoryPage = null;
+        List<Page> repositoryPage;
         try {
             repositoryPage = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
         } catch (MalformedURLException e) {
@@ -73,6 +73,8 @@ public class IndexPageServiceImpl implements IndexPageService{
         // TODO что делать, если path русто?
         if (repositoryPage.isEmpty()){
             System.out.println("В БД нет такой страницы");
+            page.setSite(repositorySiteByIndexPage);
+
             // добавить страницу в БД
             // лемматизация (таблицы lemma + index)
 
@@ -93,12 +95,15 @@ public class IndexPageServiceImpl implements IndexPageService{
                 .findFirst();
     }
 
-    private String getIndexPageHtml(IndexPage indexPage) throws IOException {
-        Document webDocument = Jsoup.connect(indexPage.getUrl())
+    private void fillIndexPageHtmlAndStatusCode(IndexPage indexPage) throws IOException {
+        Connection.Response response = Jsoup.connect(indexPage.getUrl())
                 .userAgent(requestParameters.getUserAgent())
                 .referrer(requestParameters.getReferrer())
-                .get();
-        return webDocument.toString();
+                .ignoreHttpErrors(true)
+                .execute();
+        Document webDocument = response.parse();
+        page.setCode(response.statusCode());
+        page.setContent(webDocument.toString());
     }
 
     private List<Site> getSiteFromSiteRepository(IndexPage indexPage){
