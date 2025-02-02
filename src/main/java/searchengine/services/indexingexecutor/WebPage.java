@@ -84,7 +84,7 @@ public class WebPage{
             } catch (Exception e) {
                 e.getMessage();
             }
-            if(!isThisPageAlreadySaved(getRelativeUrl(childLink))) {
+            if(!isThisPageAlreadySaved(UrlHandler.getPathFromUrl(childLink))) {
                 savePage(response.statusCode(), childLink, childWebDocumentContent);
             }
         });
@@ -135,20 +135,10 @@ public class WebPage{
     public Page fillPageFields(int httpCode, String url, String webPageContent) {
         Page page = new Page();
         page.setSite(site);
-        page.setPath(getRelativeUrl(url).isEmpty() ? "/" : getRelativeUrl(url));
+        page.setPath(UrlHandler.getPathFromUrl(url));
         page.setCode(httpCode);
         page.setContent(webPageContent);
         return page;
-    }
-
-    public String getRelativeUrl(String fullUrl){
-        String path;
-        try {
-            path = UrlHandler.getPathFromUrl(fullUrl);
-        } catch (MalformedURLException e) {
-            path = fullUrl.replace(site.getUrl(), "");
-        }
-        return path;
     }
 
     public boolean isThisPageAlreadySaved(String url){

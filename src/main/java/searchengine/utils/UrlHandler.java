@@ -17,9 +17,16 @@ public class UrlHandler {
         return prettyUrl.toLowerCase();
     }
 
-    public static String getPathFromUrl (String url) throws MalformedURLException {
-        String path = new URL(url).getPath();
-        if(!path.isEmpty()) {
+    public static String getPathFromUrl (String url) {
+        String path;
+        try {
+            path = new URL(url).getPath();
+        }catch (MalformedURLException e) {
+            path = url.replace(getPrettyRootUrl(url), "");
+        }
+        if(path.isEmpty()) {
+            path = "/";
+        } else {
             path = path.endsWith("/")
                     ? path.substring(0, path.length() - 1)
                     : path;
