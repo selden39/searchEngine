@@ -18,7 +18,6 @@ import searchengine.repositories.SiteRepository;
 import searchengine.utils.UrlHandler;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,21 +61,22 @@ public class IndexPageServiceImpl implements IndexPageService{
             repositorySiteByIndexPage = repositorySitesByIndexPage.get(0);
         }
 
-        // добавлена ли страница -> добавить страницу и леммы
-        List<Page> repositoryPage;
-        try {
-            repositoryPage = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
-        } catch (MalformedURLException e) {
-            return new OperationIndexingResponse(false, ERROR_DESC_GET_PATH_ERROR);
+        // добавлена ли страница:
+        // да -> удалить страницу и леммы
+        // добавить страницу и леммы
+
+        List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
+        if (!repositoryPages.isEmpty()) {
+            deleteRepositoryPageLemmaIndex(repositoryPages);
+            //TODO добавить удаление лемм и индексов
         }
 
-        if (repositoryPage.isEmpty()){
-            page.setSite(repositorySiteByIndexPage);
-            page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
-            pageRepository.save(page);
-            // лемматизация (таблицы lemma + index)
+        page.setSite(repositorySiteByIndexPage);
+        page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
+        pageRepository.save(page);
+        // лемматизация (таблицы lemma + index)
 
-        }
+
 
         // если repositoryPage не пусто, то
             // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
@@ -113,7 +113,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         return siteRepository.save(site);
     }
 
-    public Site fillSiteFields(ConfigSite configSite) {
+    private Site fillSiteFields(ConfigSite configSite) {
         Site site = new Site();
         site.setStatus(Status.FAILED);
         site.setStatusTime(LocalDateTime.now());
@@ -122,9 +122,17 @@ public class IndexPageServiceImpl implements IndexPageService{
         return site;
     }
 
-    public List<Page> getRepositoryPageByIndexPage(IndexPage indexPage, Site repositorySitesByIndexPage) throws MalformedURLException {
+    private List<Page> getRepositoryPageByIndexPage(IndexPage indexPage, Site repositorySitesByIndexPage) {
         return pageRepository.findByPathAndSite(
                 UrlHandler.getPathFromUrl(indexPage.getUrl())
                 , repositorySitesByIndexPage);
+    }
+
+    private void deleteRepositoryPageLemmaIndex (List<Page> repositoryPages){
+        System.out.println("DELETE");
+        repositoryPages.forEach(rpage -> {
+            System.out.println(rpage.getPath());
+        });
+        pageRepository.deleteAll(repositoryPages);
     }
 }
