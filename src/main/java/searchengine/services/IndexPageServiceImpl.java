@@ -40,6 +40,7 @@ public class IndexPageServiceImpl implements IndexPageService{
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
     private final String ERROR_DESC_GET_PATH_ERROR = "Не удалось получить путь для указанного URL";
+    private final String ERROR_LEMMATIZATION = "Не удалось выполнить сбор и сохранение лемм";
 
     @Override
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
@@ -85,8 +86,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         try {
             lemmasDataSaver.saveLemmasData();
         } catch (Exception e) {
-            //TODO подумать над обработкой
-            e.printStackTrace();
+            return new OperationIndexingResponse(false, ERROR_LEMMATIZATION);
         }
 
 
