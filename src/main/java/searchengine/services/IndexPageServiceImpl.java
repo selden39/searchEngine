@@ -79,9 +79,12 @@ public class IndexPageServiceImpl implements IndexPageService{
         pageRepository.save(page);
         // лемматизация (таблицы lemma + index)
         LemmasSaver lemmasSaver = new LemmasSaver(repositorySiteByIndexPage, page, lemmaRepository);
-
-
-
+        try {
+            lemmasSaver.saveLemmas();
+        } catch (Exception e) {
+            //TODO подумать над обработкой
+            e.printStackTrace();
+        }
 
 
         // если repositoryPage не пусто, то
