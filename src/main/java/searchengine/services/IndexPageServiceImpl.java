@@ -13,10 +13,11 @@ import searchengine.dto.statistics.OperationIndexingResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.model.Status;
+import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.lemmatization.LemmasSaver;
+import searchengine.services.lemmatization.LemmasDataSaver;
 import searchengine.utils.UrlHandler;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
     private final SitesList configSites;
     private final RequestParameters requestParameters;
     private Page page = new Page();
@@ -78,9 +80,10 @@ public class IndexPageServiceImpl implements IndexPageService{
         page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
         pageRepository.save(page);
         // лемматизация (таблицы lemma + index)
-        LemmasSaver lemmasSaver = new LemmasSaver(repositorySiteByIndexPage, page, lemmaRepository);
+        LemmasDataSaver lemmasDataSaver = new LemmasDataSaver(repositorySiteByIndexPage,
+                page, lemmaRepository, indexRepository);
         try {
-            lemmasSaver.saveLemmas();
+            lemmasDataSaver.saveLemmasData();
         } catch (Exception e) {
             //TODO подумать над обработкой
             e.printStackTrace();
