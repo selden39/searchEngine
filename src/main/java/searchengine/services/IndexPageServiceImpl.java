@@ -17,6 +17,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.lemmatization.LemmasDataRemover;
 import searchengine.services.lemmatization.LemmasDataSaver;
 import searchengine.utils.UrlHandler;
 
@@ -73,8 +74,15 @@ public class IndexPageServiceImpl implements IndexPageService{
 
         List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
         if (!repositoryPages.isEmpty()) {
-            deleteRepositoryPageLemmaIndex(repositoryPages);
             //TODO добавить удаление лемм и индексов
+
+            LemmasDataRemover lemmasDataRemover = new LemmasDataRemover(repositoryPages,
+                    lemmaRepository, indexRepository);
+            lemmasDataRemover.removeLemmasData();
+
+
+            // TODO вернуть и почистить удаление страницы
+    //        deleteRepositoryPage(repositoryPages);
         }
 
         page.setSite(repositorySiteByIndexPage);
@@ -140,11 +148,13 @@ public class IndexPageServiceImpl implements IndexPageService{
                 , repositorySitesByIndexPage);
     }
 
-    private void deleteRepositoryPageLemmaIndex (List<Page> repositoryPages){
+    private void deleteRepositoryPage(List<Page> repositoryPages){
         System.out.println("DELETE");
         repositoryPages.forEach(rpage -> {
             System.out.println(rpage.getPath());
         });
+        // тут добаввить удаление индексов, корректировку лемм и саму страницу
+
         pageRepository.deleteAll(repositoryPages);
     }
 }

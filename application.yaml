@@ -22,8 +22,6 @@ indexing-settings:
   configSites:
     - url: https://lEnta.ru
       name: Лента.ру
-    - url: https://volochek.life/
-      name: volochek
     - url: https://radiomv.ru/
       name: policeRadio
     - url: https://www.playback.ru

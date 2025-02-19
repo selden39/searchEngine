@@ -13,8 +13,8 @@ import java.util.List;
 
 @AllArgsConstructor
 public class LemmasDataSaver {
-    Site site;
-    Page page;
+    private Site site;
+    private Page page;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
 
