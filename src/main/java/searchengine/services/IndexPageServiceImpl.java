@@ -42,6 +42,7 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
     private final String ERROR_DESC_GET_PATH_ERROR = "Не удалось получить путь для указанного URL";
     private final String ERROR_LEMMATIZATION = "Не удалось выполнить сбор и сохранение лемм";
+    private final String ERROR_REMOVE_LEMMAS_DATA = "Не удалось выполнить удаление \"старой\" информации для этой страницы";
 
     @Override
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
@@ -74,11 +75,15 @@ public class IndexPageServiceImpl implements IndexPageService{
 
         List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
         if (!repositoryPages.isEmpty()) {
-            //TODO добавить удаление лемм и индексов
+            //удаление лемм и индексов
 
             LemmasDataRemover lemmasDataRemover = new LemmasDataRemover(repositoryPages,
-                    lemmaRepository, indexRepository);
-            lemmasDataRemover.removeLemmasData();
+                    repositorySiteByIndexPage, lemmaRepository, indexRepository);
+            try {
+                lemmasDataRemover.removeLemmasData();
+            } catch (Exception e){
+                return new OperationIndexingResponse(false, ERROR_REMOVE_LEMMAS_DATA);
+            }
 
 
             // TODO вернуть и почистить удаление страницы
