@@ -36,18 +36,18 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final IndexRepository indexRepository;
     private final SitesList configSites;
     private final RequestParameters requestParameters;
-    private Page page = new Page();
+    private Page page;
     private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, \n" +
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
-    private final String ERROR_DESC_GET_PATH_ERROR = "Не удалось получить путь для указанного URL";
     private final String ERROR_LEMMATIZATION = "Не удалось выполнить сбор и сохранение лемм";
     private final String ERROR_REMOVE_LEMMAS_DATA = "Не удалось выполнить удаление \"старой\" информации для этой страницы";
 
     @Override
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
+        page = new Page();
 
-     // проверка, что сайт наш и сразу возвращаем этот сайт, чтобы его потом создать, если не нашли в базе
+        // проверка, что сайт наш и сразу возвращаем этот сайт, чтобы его потом создать, если не нашли в базе
         Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
         if(!configSiteForIndexPage.isPresent()){
             return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
@@ -85,9 +85,7 @@ public class IndexPageServiceImpl implements IndexPageService{
                 return new OperationIndexingResponse(false, ERROR_REMOVE_LEMMAS_DATA);
             }
 
-
-            // TODO вернуть и почистить удаление страницы
-    //        deleteRepositoryPage(repositoryPages);
+            deleteRepositoryPage(repositoryPages);
         }
 
         page.setSite(repositorySiteByIndexPage);
@@ -107,8 +105,8 @@ public class IndexPageServiceImpl implements IndexPageService{
             // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
 
         // отправка ответа
-
-        return null;
+// TODO доработать ответ под требования
+        return new OperationIndexingResponse(true);
     }
 
     private Optional<ConfigSite> getConfigSiteByIndexPage(IndexPage indexPage){
@@ -154,12 +152,6 @@ public class IndexPageServiceImpl implements IndexPageService{
     }
 
     private void deleteRepositoryPage(List<Page> repositoryPages){
-        System.out.println("DELETE");
-        repositoryPages.forEach(rpage -> {
-            System.out.println(rpage.getPath());
-        });
-        // тут добаввить удаление индексов, корректировку лемм и саму страницу
-
         pageRepository.deleteAll(repositoryPages);
     }
 }

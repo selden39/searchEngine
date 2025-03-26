@@ -30,6 +30,7 @@ public class LemmasDataSaver {
                 int currentFrequency = existingLemmas.get(0).getFrequency();
                 existingLemmas.get(0).setFrequency(currentFrequency + count);
                 lemmaRepository.save(existingLemmas.get(0));
+                addIndex(existingLemmas.get(0), count);
             }
         });
     }

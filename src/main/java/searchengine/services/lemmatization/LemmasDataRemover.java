@@ -20,8 +20,10 @@ public class LemmasDataRemover {
 
     public void removeLemmasData() throws Exception{
         Collection<Index> indexListForPage = indexRepository.findIndexListByPageList(pageList);
-        indexRepository.deleteIndexListByPageList(pageList);
-        updateLemmasFrequency(indexListForPage);
+        if(!indexListForPage.isEmpty()) {
+            indexRepository.deleteIndexListByPageList(pageList);
+            updateLemmasFrequency(indexListForPage);
+        }
     }
 
     private void updateLemmasFrequency(Collection<Index> indexListForPage){
@@ -31,6 +33,8 @@ public class LemmasDataRemover {
                 if(lemma.equals(index.getLemma())){
                     int currentFrequency = lemma.getFrequency();
                     lemma.setFrequency(currentFrequency - index.getRank());
+                    // TODO по хорошему нужно бы удалять те леммы, у которых Frequency получили ноль
+                    // сейчас они остаются в БД со значением Frequency=0
                     lemmaRepository.save(lemma);
                 }
             });
