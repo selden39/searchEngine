@@ -30,8 +30,6 @@ public class ApiController {
         this.indexPageService = indexPageService;
     }
 
-    // TODO всегда возвращаем HTTP 200 ок
-
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
         return ResponseEntity.ok(statisticsService.getStatistics());
@@ -52,9 +50,6 @@ public class ApiController {
         if (indexPage.getUrl() == null || indexPage.getUrl().isEmpty()) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-
-        System.out.println("POST: " + indexPage.getUrl());
-
         return ResponseEntity.ok(indexPageService.postIndexPage(indexPage));
     }
 }

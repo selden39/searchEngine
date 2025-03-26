@@ -47,20 +47,17 @@ public class IndexPageServiceImpl implements IndexPageService{
     public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
         page = new Page();
 
-        // проверка, что сайт наш и сразу возвращаем этот сайт, чтобы его потом создать, если не нашли в базе
         Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
         if(!configSiteForIndexPage.isPresent()){
             return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
 
-     // получение html и statusCode
         try {
             fillIndexPageHtmlAndStatusCode(indexPage);
         } catch (IOException e) {
             return new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
         }
 
-     // добавлен ли сайт? -> добавить и добавить сайт в page
         List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPage);
         Site repositorySiteByIndexPage;
         if(repositorySitesByIndexPage.isEmpty()) {
@@ -69,13 +66,8 @@ public class IndexPageServiceImpl implements IndexPageService{
             repositorySiteByIndexPage = repositorySitesByIndexPage.get(0);
         }
 
-        // добавлена ли страница:
-        // да -> удалить страницу и леммы
-        // добавить страницу и леммы
-
         List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
         if (!repositoryPages.isEmpty()) {
-            //удаление лемм и индексов
 
             LemmasDataRemover lemmasDataRemover = new LemmasDataRemover(repositoryPages,
                     repositorySiteByIndexPage, lemmaRepository, indexRepository);
@@ -91,7 +83,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         page.setSite(repositorySiteByIndexPage);
         page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
         pageRepository.save(page);
-        // лемматизация (таблицы lemma + index)
+
         LemmasDataSaver lemmasDataSaver = new LemmasDataSaver(repositorySiteByIndexPage,
                 page, lemmaRepository, indexRepository);
         try {
@@ -100,12 +92,6 @@ public class IndexPageServiceImpl implements IndexPageService{
             return new OperationIndexingResponse(false, ERROR_LEMMATIZATION);
         }
 
-
-        // если repositoryPage не пусто, то
-            // проиндексирована ли страница -> очистить page, lemma, index -> добавить страницу и леммы
-
-        // отправка ответа
-// TODO доработать ответ под требования
         return new OperationIndexingResponse(true);
     }
 
