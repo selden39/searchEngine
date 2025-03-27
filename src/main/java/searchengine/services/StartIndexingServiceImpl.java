@@ -1,14 +1,16 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 import searchengine.config.RequestParameters;
 import searchengine.config.ConfigSite;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.OperationIndexingResponse;
+import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.model.Status;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexingexecutor.SiteMapCompiler;
@@ -20,6 +22,7 @@ import searchengine.utils.UrlHandler;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -27,6 +30,8 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
     private final RequestParameters requestParameters;
     private final SitesList configSites;
     private String errorMessage;
@@ -83,13 +88,34 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     public boolean clearTables() {
         boolean result = true;
         try {
-            siteRepository.deleteAll();
-            pageRepository.deleteAll();
+            List<Site> siteListToDel = getRepoSiteListByConfigSiteList();
+            List<Page> pageListToDel = getRepoPageListByRepoSiteList(siteListToDel);
+            indexRepository.deleteIndexListByPageList(pageListToDel);
+            lemmaRepository.deleteLemmaBySiteIn(siteListToDel);
+            siteRepository.deleteSiteByIdIn(siteListToDel.stream()
+                    .map(site -> site.getId())
+                    .toList()
+            );
+            pageRepository.deletePageByIdIn(pageListToDel.stream()
+                    .map(page -> page.getId())
+                    .toList()
+            );
         } catch (Exception e) {
             errorMessage = ERROR_DESC_DELETING_ERROR;
             result = false;
         }
         return result;
+    }
+
+    private List<Site> getRepoSiteListByConfigSiteList(){
+        List<String> urlListFromConfigSiteList = configSites.getConfigSites().stream()
+                .map(configSite -> UrlHandler.getPrettyRootUrl(configSite.getUrl()))
+                .collect(Collectors.toList());
+        return siteRepository.findByUrlIn(urlListFromConfigSiteList);
+    }
+
+    private List<Page> getRepoPageListByRepoSiteList(List<Site> siteList){
+        return pageRepository.findBySiteIn(siteList);
     }
 
     public Site fillSiteFields(ConfigSite configSite) {

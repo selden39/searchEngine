@@ -49,6 +49,7 @@ public class WebPage{
                     .execute();
             webDocument = response.parse();
             savePage(response.statusCode(), site.getUrl(), webDocument.toString());
+//TODO вот тут нужно вызвать процедуру сохранения лемм и индексов
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -86,6 +87,7 @@ public class WebPage{
             }
             if(!isThisPageAlreadySaved(UrlHandler.getPathFromUrl(childLink))) {
                 savePage(response.statusCode(), childLink, childWebDocumentContent);
+// TODO вот тут добавить леммы и индексы
             }
         });
     }
