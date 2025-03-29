@@ -1,6 +1,6 @@
 package searchengine.services;
 
-import searchengine.dto.statistics.OperationIndexingResponse;
+import searchengine.dto.OperationIndexingResponse;
 
 public interface StopIndexingService {
     OperationIndexingResponse getStopIndexing();

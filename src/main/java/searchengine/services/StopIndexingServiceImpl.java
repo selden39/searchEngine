@@ -2,7 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.dto.statistics.OperationIndexingResponse;
+import searchengine.dto.OperationIndexingResponse;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexingexecutor.ThreadCollector;

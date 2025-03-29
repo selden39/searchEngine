@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.config.RequestParameters;
 import searchengine.config.ConfigSite;
 import searchengine.config.SitesList;
-import searchengine.dto.statistics.OperationIndexingResponse;
+import searchengine.dto.OperationIndexingResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.model.Status;
