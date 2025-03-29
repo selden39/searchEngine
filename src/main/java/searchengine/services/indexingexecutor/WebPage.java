@@ -9,8 +9,11 @@ import org.springframework.orm.jpa.JpaSystemException;
 import searchengine.config.RequestParameters;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.lemmatization.LemmasDataSaver;
 import searchengine.utils.UrlHandler;
 
 import java.net.MalformedURLException;
@@ -27,6 +30,8 @@ public class WebPage{
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private final RequestParameters requestParameters;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
     @Getter
     private String url;
     private Document webDocument;
@@ -35,12 +40,16 @@ public class WebPage{
     private final int STATUS_CODE_POSITIVE = 200;
     private final String SAVING_EXCEPTION_MESSAGE = "Sorry, but we couldn't save the page content";
 
-    public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository, RequestParameters requestParameters){
+    public WebPage(Site site, PageRepository pageRepository, SiteRepository siteRepository,
+                   RequestParameters requestParameters, LemmaRepository lemmaRepository,
+                   IndexRepository indexRepository){
         this.site = site;
         this.url = trimLastSlash(site.getUrl());
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
         try {
             Connection.Response response = Jsoup.connect(url)
                     .userAgent(requestParameters.getUserAgent())
@@ -48,21 +57,25 @@ public class WebPage{
                     .ignoreHttpErrors(true)
                     .execute();
             webDocument = response.parse();
-            savePage(response.statusCode(), site.getUrl(), webDocument.toString());
-//TODO вот тут нужно вызвать процедуру сохранения лемм и индексов
+            Page page = savePage(response.statusCode(), site.getUrl(), webDocument.toString());
+            saveLemmasData(page);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
         children = new ArrayList<>();
     }
 
-    public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository, Document webDocument, RequestParameters requestParameters) {
+    public WebPage(Site site, String url, PageRepository pageRepository, SiteRepository siteRepository,
+                   Document webDocument, RequestParameters requestParameters,
+                   LemmaRepository lemmaRepository, IndexRepository indexRepository) {
         this.site = site;
         this.url = trimLastSlash(url);
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.requestParameters = requestParameters;
         this.webDocument = webDocument;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
         children = new ArrayList<>();
     }
 
@@ -80,19 +93,20 @@ public class WebPage{
                 if (response.statusCode() == STATUS_CODE_POSITIVE) {
                     Document childWebDocument = response.parse();
                     childWebDocumentContent = childWebDocument.toString();
-                    children.add(new WebPage(site, childLink, pageRepository, siteRepository, childWebDocument, requestParameters));
+                    children.add(new WebPage(site, childLink, pageRepository, siteRepository,
+                            childWebDocument, requestParameters, lemmaRepository, indexRepository));
                 }
             } catch (Exception e) {
-                e.getMessage();
+                System.out.println(e.getMessage());
             }
             if(!isThisPageAlreadySaved(UrlHandler.getPathFromUrl(childLink))) {
-                savePage(response.statusCode(), childLink, childWebDocumentContent);
-// TODO вот тут добавить леммы и индексы
+                Page page = savePage(response.statusCode(), childLink, childWebDocumentContent);
+                saveLemmasData(page);
             }
         });
     }
 
-    private void savePage(int statusCode, String pageUrl, String webDocumentContent){
+    private Page savePage(int statusCode, String pageUrl, String webDocumentContent){
         Page page = fillPageFields(statusCode, pageUrl, webDocumentContent);
         try {
             pageRepository.save(page);
@@ -102,6 +116,7 @@ public class WebPage{
             pageRepository.save(page);
         }
         changeStatusTime();
+        return page;
     }
 
     public Set<String> getChildrenLinks(){
@@ -151,5 +166,15 @@ public class WebPage{
     public void changeStatusTime(){
         site.setStatusTime(LocalDateTime.now());
         siteRepository.save(site);
+    }
+
+    private void saveLemmasData(Page page){
+        LemmasDataSaver lemmasDataSaver = new LemmasDataSaver(site,
+                page, lemmaRepository, indexRepository);
+        try {
+            lemmasDataSaver.saveLemmasData();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

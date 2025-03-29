@@ -133,7 +133,9 @@ public class StartIndexingServiceImpl implements StartIndexingService{
                     site,
                     pageRepository,
                     siteRepository,
-                    requestParameters
+                    requestParameters,
+                    lemmaRepository,
+                    indexRepository
             );
             forkJoinPool.invoke(new SiteMapCompiler(
                     rootWebPage,
