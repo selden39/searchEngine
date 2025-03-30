@@ -1,15 +1,14 @@
 package searchengine.controllers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.IndexPage;
 import searchengine.dto.OperationIndexingResponse;
+import searchengine.dto.SearchResponse;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.IndexPageService;
-import searchengine.services.StartIndexingService;
-import searchengine.services.StatisticsService;
-import searchengine.services.StopIndexingService;
+import searchengine.services.*;
 
 @RestController
 @RequestMapping("/api")
@@ -19,15 +18,20 @@ public class ApiController {
     private final StartIndexingService startIndexingService;
     private final StopIndexingService stopIndexingService;
     private final IndexPageService indexPageService;
+    private final SearchService searchService;
+    private final String DEFAULT_OFFSET = "0";
+    private final String DEFAULT_LIMIT = "20";
 
     public ApiController(StatisticsService statisticsService,
                          StartIndexingService startIndexingService,
                          StopIndexingService stopIndexingService,
-                         IndexPageService indexPageService) {
+                         IndexPageService indexPageService,
+                         SearchService searchService) {
         this.statisticsService = statisticsService;
         this.startIndexingService = startIndexingService;
         this.stopIndexingService = stopIndexingService;
         this.indexPageService = indexPageService;
+        this.searchService = searchService;
     }
 
     @GetMapping("/statistics")
@@ -51,5 +55,23 @@ public class ApiController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok(indexPageService.postIndexPage(indexPage));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<SearchResponse> search(
+            @RequestParam(value = "query") String query,
+            @RequestParam(value = "site", required = false) String searchSite,
+            @RequestParam(value = "offset",
+                    required = false,
+                    defaultValue = DEFAULT_OFFSET
+            ) Integer offset,
+            @RequestParam(value = "limit",
+                    required = false,
+                    defaultValue = DEFAULT_LIMIT
+            ) Integer limit) {
+//TODO https://sky.pro/wiki/java/rabota-s-query-parametrami-v-spring-boot-kontrollere/
+
+        SearchResponse searchResponse = searchService.search(query, searchSite, offset, limit);
+        return ResponseEntity.ok(searchResponse);
     }
 }
