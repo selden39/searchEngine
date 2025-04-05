@@ -2,6 +2,7 @@ package searchengine.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.IndexPage;
 import searchengine.dto.OperationIndexingResponse;
@@ -9,8 +10,11 @@ import searchengine.dto.SearchResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.*;
 
+import javax.validation.constraints.*;
+
 @RestController
 @RequestMapping("/api")
+@Validated
 public class ApiController {
 
     private final StatisticsService statisticsService;
@@ -58,23 +62,16 @@ public class ApiController {
 
     @GetMapping("/search")
     public ResponseEntity<SearchResponse> search(
-            @RequestParam(value = "query") String query,
+            @RequestParam(value = "query") @NotBlank String query,
             @RequestParam(value = "site", required = false) String searchSite,
             @RequestParam(value = "offset",
                     required = false,
                     defaultValue = DEFAULT_OFFSET
-            ) Integer offset,
+            ) @PositiveOrZero Integer offset,
             @RequestParam(value = "limit",
                     required = false,
                     defaultValue = DEFAULT_LIMIT
-            ) Integer limit) {
-//TODO https://sky.pro/wiki/java/rabota-s-query-parametrami-v-spring-boot-kontrollere/
-// 400 - Bad Request,
-// 401 - Unauthorized,
-// 403 - Forbidden,
-// 404 - Not Found,
-// 405 - Method Not Allowed
-// 500 - Internal Server Error
+            ) @PositiveOrZero Integer limit) {
 
         SearchResponse searchResponse = searchService.search(query, searchSite, offset, limit);
         return ResponseEntity.ok(searchResponse);
