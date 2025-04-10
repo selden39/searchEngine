@@ -7,11 +7,21 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import searchengine.dto.ErrorMessageResponse;
+import searchengine.services.ServiceValidationException;
 
 import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
+
+    @ExceptionHandler(ServiceValidationException.class)
+    public ResponseEntity<ErrorMessageResponse> handleServiceValidationException (ServiceValidationException e){
+        return ResponseEntity.status(e.getHttpCode())
+                .body(new ErrorMessageResponse(
+                        e.isHttpResult(),
+                        e.getErrorDesc()
+                ));
+    }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorMessageResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e){
@@ -47,7 +57,4 @@ public class GlobalControllerAdvice {
                 .body(new ErrorMessageResponse(false, "Произошла непредвиденная ошибка")
                 );
     }
-
-
-
 }

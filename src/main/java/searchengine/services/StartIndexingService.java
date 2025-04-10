@@ -3,5 +3,5 @@ package searchengine.services;
 import searchengine.dto.OperationIndexingResponse;
 
 public interface StartIndexingService {
-    OperationIndexingResponse getStartIndexing();
+    OperationIndexingResponse getStartIndexing() throws Exception;
 }
