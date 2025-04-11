@@ -37,25 +37,29 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final SitesList configSites;
     private final RequestParameters requestParameters;
     private Page page;
-    private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, \n" +
+    private final String ERROR_DESC_OUT_OF_SITE_LIST = "Данная страница находится за пределами сайтов, " +
             "указанных в конфигурационном файле";
     private final String ERROR_DESC_PAGE_NOT_FOUND = "Страница не найдена";
     private final String ERROR_LEMMATIZATION = "Не удалось выполнить сбор и сохранение лемм";
     private final String ERROR_REMOVE_LEMMAS_DATA = "Не удалось выполнить удаление \"старой\" информации для этой страницы";
+    private final String ERROR_IOEXCEPTION = "Внутренняя ошибка при обработке данных страницы";
 
     @Override
-    public OperationIndexingResponse postIndexPage(IndexPage indexPage) {
+    public OperationIndexingResponse postIndexPage(IndexPage indexPage) throws ServiceValidationException{
         page = new Page();
 
         Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
         if(!configSiteForIndexPage.isPresent()){
-            return new OperationIndexingResponse(false, ERROR_DESC_OUT_OF_SITE_LIST);
+            throw new ServiceValidationException(406, false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
 
         try {
             fillIndexPageHtmlAndStatusCode(indexPage);
+            if (page.getCode() >= 400) {
+                throw new ServiceValidationException(404, false, ERROR_DESC_PAGE_NOT_FOUND);
+            }
         } catch (IOException e) {
-            return new OperationIndexingResponse(false, ERROR_DESC_PAGE_NOT_FOUND);
+            throw new ServiceValidationException(false, ERROR_IOEXCEPTION);
         }
 
         List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPage);
@@ -74,7 +78,7 @@ public class IndexPageServiceImpl implements IndexPageService{
             try {
                 lemmasDataRemover.removeLemmasData();
             } catch (Exception e){
-                return new OperationIndexingResponse(false, ERROR_REMOVE_LEMMAS_DATA);
+                throw new ServiceValidationException(false, ERROR_REMOVE_LEMMAS_DATA);
             }
 
             deleteRepositoryPage(repositoryPages);
@@ -89,7 +93,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         try {
             lemmasDataSaver.saveLemmasData();
         } catch (Exception e) {
-            return new OperationIndexingResponse(false, ERROR_LEMMATIZATION);
+            throw new ServiceValidationException(false, ERROR_LEMMATIZATION);
         }
 
         return new OperationIndexingResponse(true);

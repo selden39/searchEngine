@@ -59,7 +59,7 @@ public class ApiController {
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<OperationIndexingResponse> indexPage(@RequestBody IndexPage indexPage){
+    public ResponseEntity<OperationIndexingResponse> indexPage(@RequestBody IndexPage indexPage) throws ServiceValidationException{
         if (indexPage.getUrl() == null || indexPage.getUrl().isEmpty()) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
