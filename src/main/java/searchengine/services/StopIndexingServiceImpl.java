@@ -28,7 +28,6 @@ public class StopIndexingServiceImpl implements StopIndexingService{
                     forkJoinPool.shutdownNow();
                 });
                 LastErrorMessage.setLastErrorMessage(STOP_INDEXING_MESSAGE);
-                // TODO перевести статус site в FAILED и записать текст ошибки «Индексация остановлена пользователем».
                 operationIndexingResponse = new OperationIndexingResponse(true);
             } catch (Exception e) {
                 throw new ServiceValidationException(false, UNEXPECTED_ERROR_DESC);
