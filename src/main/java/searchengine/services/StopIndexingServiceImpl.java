@@ -13,25 +13,25 @@ import searchengine.services.stopindexingexecutor.LastErrorMessage;
 @Service
 public class StopIndexingServiceImpl implements StopIndexingService{
     private final String UNEXPECTED_ERROR_DESC = "Непредвиденная ошибка";
-    private final String INDEXING_NOT_RUN__ERROR_DESC = "Индексация не запущена";
+    private final String INDEXING_NOT_RUN_ERROR_DESC = "Индексация не запущена";
     private final String STOP_INDEXING_MESSAGE = "Индексация остановлена пользователем";
     private final SiteRepository siteRepository;
 
     @Override
-    public OperationIndexingResponse getStopIndexing(){
+    public OperationIndexingResponse getStopIndexing() throws Exception{
         OperationIndexingResponse operationIndexingResponse;
-
         if (siteRepository.findByStatus(Status.INDEXING).isEmpty()){
-            operationIndexingResponse = new OperationIndexingResponse(false, INDEXING_NOT_RUN__ERROR_DESC);
+            throw new ServiceValidationException(406, false, INDEXING_NOT_RUN_ERROR_DESC);
         } else {
             try {
                 ThreadCollector.getIndexingThreads().forEach((thread, forkJoinPool) -> {
                     forkJoinPool.shutdownNow();
                 });
                 LastErrorMessage.setLastErrorMessage(STOP_INDEXING_MESSAGE);
+                // TODO перевести статус site в FAILED и записать текст ошибки «Индексация остановлена пользователем».
                 operationIndexingResponse = new OperationIndexingResponse(true);
             } catch (Exception e) {
-                operationIndexingResponse = new OperationIndexingResponse(false, UNEXPECTED_ERROR_DESC);
+                throw new ServiceValidationException(false, UNEXPECTED_ERROR_DESC);
             }
         }
         return operationIndexingResponse;

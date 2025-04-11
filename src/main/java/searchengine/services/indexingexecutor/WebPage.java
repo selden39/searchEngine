@@ -97,7 +97,7 @@ public class WebPage{
                             childWebDocument, requestParameters, lemmaRepository, indexRepository));
                 }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("addChild operation error: " + e.getMessage());
             }
             if(!isThisPageAlreadySaved(UrlHandler.getPathFromUrl(childLink))) {
                 Page page = savePage(response.statusCode(), childLink, childWebDocumentContent);

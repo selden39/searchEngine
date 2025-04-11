@@ -41,11 +41,13 @@ public class StartIndexingServiceImpl implements StartIndexingService{
 
     @Override
     public OperationIndexingResponse getStartIndexing() throws Exception{
-        if (!checkIsPossibleToRunIndexingProcedure() || !clearTables()) {
-            throw new ServiceValidationException(false, errorMessage);
-        } else {
-            startIndexingProcedure();
+        if (!checkIsPossibleToRunIndexingProcedure()) {
+            throw new ServiceValidationException(423, false, errorMessage);
         }
+        if (!clearTables()){
+            throw new ServiceValidationException(false, errorMessage);
+        }
+        startIndexingProcedure();
         return new OperationIndexingResponse(true);
     }
 
