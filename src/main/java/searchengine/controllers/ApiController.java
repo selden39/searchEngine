@@ -46,10 +46,6 @@ public class ApiController {
     public ResponseEntity<OperationIndexingResponse> startIndexing() throws ServiceValidationException {
         OperationIndexingResponse operationIndexingResponse;
         operationIndexingResponse = startIndexingService.getStartIndexing();
-        /*  try {
-        } catch (ServiceValidationException e) {
-            throw e;
-        }*/
         return ResponseEntity.ok(operationIndexingResponse);
     }
 
