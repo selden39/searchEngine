@@ -40,7 +40,7 @@ public class StartIndexingServiceImpl implements StartIndexingService{
     private final String ERROR_DESC_STATUS_GETTING_ERROR =  "Индексация не запущена, т.к. возникли проблемы с получением текущих статусов сайтов";
 
     @Override
-    public OperationIndexingResponse getStartIndexing() throws Exception{
+    public OperationIndexingResponse getStartIndexing() throws ServiceValidationException{
         if (!checkIsPossibleToRunIndexingProcedure()) {
             throw new ServiceValidationException(423, false, errorMessage);
         }

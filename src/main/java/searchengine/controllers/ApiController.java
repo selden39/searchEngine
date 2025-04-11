@@ -43,7 +43,7 @@ public class ApiController {
     }
 
     @GetMapping("/startIndexing")
-    public ResponseEntity<OperationIndexingResponse> startIndexing() throws Exception {
+    public ResponseEntity<OperationIndexingResponse> startIndexing() throws ServiceValidationException {
         OperationIndexingResponse operationIndexingResponse;
         operationIndexingResponse = startIndexingService.getStartIndexing();
         /*  try {
@@ -54,7 +54,7 @@ public class ApiController {
     }
 
     @GetMapping("/stopIndexing")
-    public ResponseEntity<OperationIndexingResponse> stopIndexing() throws Exception{
+    public ResponseEntity<OperationIndexingResponse> stopIndexing() throws ServiceValidationException{
         return ResponseEntity.ok(stopIndexingService.getStopIndexing());
     }
 

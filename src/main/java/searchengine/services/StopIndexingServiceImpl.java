@@ -18,7 +18,7 @@ public class StopIndexingServiceImpl implements StopIndexingService{
     private final SiteRepository siteRepository;
 
     @Override
-    public OperationIndexingResponse getStopIndexing() throws Exception{
+    public OperationIndexingResponse getStopIndexing() throws ServiceValidationException{
         OperationIndexingResponse operationIndexingResponse;
         if (siteRepository.findByStatus(Status.INDEXING).isEmpty()){
             throw new ServiceValidationException(406, false, INDEXING_NOT_RUN_ERROR_DESC);
