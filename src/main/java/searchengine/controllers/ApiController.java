@@ -1,17 +1,18 @@
 package searchengine.controllers;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.IndexPage;
 import searchengine.dto.OperationIndexingResponse;
+import searchengine.dto.SearchPageDto1;
 import searchengine.dto.SearchResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.*;
 
 import javax.validation.constraints.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -84,7 +85,7 @@ public class ApiController {
     }
 
     @GetMapping("/search1")
-    public ResponseEntity<Page<searchengine.model.Page>> search1(
+    public ResponseEntity<List<SearchPageDto1>> search1(
             @RequestParam(value = "query") @NotBlank String query,
             @RequestParam(value = "site", required = false) String searchSite,
             @RequestParam(value = "offset",
@@ -96,7 +97,7 @@ public class ApiController {
                     defaultValue = DEFAULT_LIMIT
             ) @PositiveOrZero @Max(100) Integer limit) {
 
-        Page<searchengine.model.Page> searchResponseList1 = searchService1.search1(query, searchSite, offset, limit);
+        List<SearchPageDto1> searchResponseList1 = searchService1.search1(query, searchSite, offset, limit);
         return ResponseEntity.ok(searchResponseList1);
     }
 }
