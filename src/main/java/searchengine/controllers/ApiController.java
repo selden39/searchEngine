@@ -1,5 +1,6 @@
 package searchengine.controllers;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +23,7 @@ public class ApiController {
     private final StopIndexingService stopIndexingService;
     private final IndexPageService indexPageService;
     private final SearchService searchService;
+    private final SearchService1 searchService1;
     private final String DEFAULT_OFFSET = "0";
     private final String DEFAULT_LIMIT = "20";
 
@@ -29,12 +31,14 @@ public class ApiController {
                          StartIndexingService startIndexingService,
                          StopIndexingService stopIndexingService,
                          IndexPageService indexPageService,
-                         SearchService searchService) {
+                         SearchService searchService,
+                         SearchService1 searchService1) {
         this.statisticsService = statisticsService;
         this.startIndexingService = startIndexingService;
         this.stopIndexingService = stopIndexingService;
         this.indexPageService = indexPageService;
         this.searchService = searchService;
+        this.searchService1 = searchService1;
     }
 
     @GetMapping("/statistics")
@@ -77,5 +81,22 @@ public class ApiController {
 
         SearchResponse searchResponse = searchService.search(query, searchSite, offset, limit);
         return ResponseEntity.ok(searchResponse);
+    }
+
+    @GetMapping("/search1")
+    public ResponseEntity<Page<searchengine.model.Page>> search1(
+            @RequestParam(value = "query") @NotBlank String query,
+            @RequestParam(value = "site", required = false) String searchSite,
+            @RequestParam(value = "offset",
+                    required = false,
+                    defaultValue = DEFAULT_OFFSET
+            ) @PositiveOrZero Integer offset,
+            @RequestParam(value = "limit",
+                    required = false,
+                    defaultValue = DEFAULT_LIMIT
+            ) @PositiveOrZero @Max(100) Integer limit) {
+
+        Page<searchengine.model.Page> searchResponseList1 = searchService1.search1(query, searchSite, offset, limit);
+        return ResponseEntity.ok(searchResponseList1);
     }
 }
