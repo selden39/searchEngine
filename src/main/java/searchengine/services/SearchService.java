@@ -4,6 +4,6 @@ import searchengine.dto.SearchResponse;
 
 public interface SearchService {
 
-    SearchResponse search(String query, String searchSite, Integer Offset, Integer limit);
+    SearchResponse search(String query, String searchSite, Integer Offset, Integer limit) throws Exception;
 
 }

@@ -20,7 +20,7 @@ public class LemmasDataSaver {
 
     public void saveLemmasData() throws Exception {
         Lemmatizer lemmatizer = new Lemmatizer();
-        HashMap<String, Integer> lemmasFromPage = lemmatizer.getLemmasFromText(page.getContent());
+        HashMap<String, Integer> lemmasFromPage = lemmatizer.getLemmasFromHtml(page.getContent());
         lemmasFromPage.forEach((lemmaFromPage,count) -> {
             List<Lemma> existingLemmas = lemmaRepository.findByLemmaAndSite(lemmaFromPage, site);
             if (existingLemmas.isEmpty()) {

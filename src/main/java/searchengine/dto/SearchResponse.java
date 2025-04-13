@@ -7,6 +7,8 @@ import lombok.Setter;
 @Setter
 public class SearchResponse {
     private boolean result;
+    private int count;
+    private SearchResponseData searchResponseData;
     private String query;
     private String searchSite;
     private Integer offset;

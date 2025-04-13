@@ -16,8 +16,12 @@ public class Lemmatizer {
         this.luceneMorphology = new RussianLuceneMorphology();
     }
 
-    public HashMap<String, Integer> getLemmasFromText (String html){
+    public HashMap<String, Integer> getLemmasFromHtml(String html){
         String text = convertHtml2text(html);
+        return getLemmasFromText(text);
+    }
+
+    public HashMap<String, Integer> getLemmasFromText(String text){
         String[] wordsArray = splitTextIntoWords(text);
         HashMap<String, Integer> lemmas = new HashMap<>();
 

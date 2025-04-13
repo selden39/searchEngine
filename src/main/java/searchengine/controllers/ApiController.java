@@ -78,8 +78,7 @@ public class ApiController {
             @RequestParam(value = "limit",
                     required = false,
                     defaultValue = DEFAULT_LIMIT
-            ) @PositiveOrZero @Max(100) Integer limit) {
-
+            ) @PositiveOrZero @Max(100) Integer limit) throws Exception {
         SearchResponse searchResponse = searchService.search(query, searchSite, offset, limit);
         return ResponseEntity.ok(searchResponse);
     }

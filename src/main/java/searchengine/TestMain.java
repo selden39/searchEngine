@@ -7,7 +7,7 @@ public class TestMain {
 
         String html = getHtml();
         Lemmatizer lemmatizer = new Lemmatizer();
-        lemmatizer.getLemmasFromText(html).forEach((lemma, count) -> System.out.println(lemma + " - " + count));
+        lemmatizer.getLemmasFromHtml(html).forEach((lemma, count) -> System.out.println(lemma + " - " + count));
 
     }
 
