@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import searchengine.dto.IndexPage;
+import searchengine.dto.IndexPageRequest;
 import searchengine.dto.OperationIndexingResponse;
 import searchengine.dto.SearchPageDto1;
 import searchengine.dto.SearchResponse;
@@ -60,11 +60,11 @@ public class ApiController {
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<OperationIndexingResponse> indexPage(@RequestBody IndexPage indexPage) throws ServiceValidationException{
-        if (indexPage.getUrl() == null || indexPage.getUrl().isEmpty()) {
+    public ResponseEntity<OperationIndexingResponse> indexPage(@RequestBody IndexPageRequest indexPageRequest) throws ServiceValidationException{
+        if (indexPageRequest.getUrl() == null || indexPageRequest.getUrl().isEmpty()) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(indexPageService.postIndexPage(indexPage));
+        return ResponseEntity.ok(indexPageService.postIndexPage(indexPageRequest));
     }
 
     @GetMapping("/search")

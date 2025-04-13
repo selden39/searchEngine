@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class IndexPage {
+public class IndexPageRequest {
     String url;
 }

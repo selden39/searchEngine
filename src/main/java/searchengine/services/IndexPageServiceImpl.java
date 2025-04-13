@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import searchengine.config.ConfigSite;
 import searchengine.config.RequestParameters;
 import searchengine.config.SitesList;
-import searchengine.dto.IndexPage;
+import searchengine.dto.IndexPageRequest;
 import searchengine.dto.OperationIndexingResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
@@ -45,16 +45,16 @@ public class IndexPageServiceImpl implements IndexPageService{
     private final String ERROR_IOEXCEPTION = "Внутренняя ошибка при обработке данных страницы";
 
     @Override
-    public OperationIndexingResponse postIndexPage(IndexPage indexPage) throws ServiceValidationException{
+    public OperationIndexingResponse postIndexPage(IndexPageRequest indexPageRequest) throws ServiceValidationException{
         page = new Page();
 
-        Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPage);
+        Optional<ConfigSite> configSiteForIndexPage = getConfigSiteByIndexPage(indexPageRequest);
         if(!configSiteForIndexPage.isPresent()){
             throw new ServiceValidationException(406, false, ERROR_DESC_OUT_OF_SITE_LIST);
         }
 
         try {
-            fillIndexPageHtmlAndStatusCode(indexPage);
+            fillIndexPageHtmlAndStatusCode(indexPageRequest);
             if (page.getCode() >= 400) {
                 throw new ServiceValidationException(404, false, ERROR_DESC_PAGE_NOT_FOUND);
             }
@@ -62,7 +62,7 @@ public class IndexPageServiceImpl implements IndexPageService{
             throw new ServiceValidationException(false, ERROR_IOEXCEPTION);
         }
 
-        List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPage);
+        List<Site> repositorySitesByIndexPage = getSiteFromSiteRepository(indexPageRequest);
         Site repositorySiteByIndexPage;
         if(repositorySitesByIndexPage.isEmpty()) {
             repositorySiteByIndexPage = saveIndexPageSite(configSiteForIndexPage.get());
@@ -70,7 +70,7 @@ public class IndexPageServiceImpl implements IndexPageService{
             repositorySiteByIndexPage = repositorySitesByIndexPage.get(0);
         }
 
-        List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPage, repositorySiteByIndexPage);
+        List<Page> repositoryPages = getRepositoryPageByIndexPage(indexPageRequest, repositorySiteByIndexPage);
         if (!repositoryPages.isEmpty()) {
 
             LemmasDataRemover lemmasDataRemover = new LemmasDataRemover(repositoryPages,
@@ -85,7 +85,7 @@ public class IndexPageServiceImpl implements IndexPageService{
         }
 
         page.setSite(repositorySiteByIndexPage);
-        page.setPath(UrlHandler.getPathFromUrl(indexPage.getUrl()));
+        page.setPath(UrlHandler.getPathFromUrl(indexPageRequest.getUrl()));
         pageRepository.save(page);
 
         LemmasDataSaver lemmasDataSaver = new LemmasDataSaver(repositorySiteByIndexPage,
@@ -99,15 +99,15 @@ public class IndexPageServiceImpl implements IndexPageService{
         return new OperationIndexingResponse(true);
     }
 
-    private Optional<ConfigSite> getConfigSiteByIndexPage(IndexPage indexPage){
+    private Optional<ConfigSite> getConfigSiteByIndexPage(IndexPageRequest indexPageRequest){
         return configSites.getConfigSites().stream()
                 .filter(configSite ->
-                    UrlHandler.getPrettyRootUrl(configSite.getUrl()).equals(UrlHandler.getPrettyRootUrl(indexPage.getUrl())))
+                    UrlHandler.getPrettyRootUrl(configSite.getUrl()).equals(UrlHandler.getPrettyRootUrl(indexPageRequest.getUrl())))
                 .findFirst();
     }
 
-    private void fillIndexPageHtmlAndStatusCode(IndexPage indexPage) throws IOException {
-        Connection.Response response = Jsoup.connect(indexPage.getUrl())
+    private void fillIndexPageHtmlAndStatusCode(IndexPageRequest indexPageRequest) throws IOException {
+        Connection.Response response = Jsoup.connect(indexPageRequest.getUrl())
                 .userAgent(requestParameters.getUserAgent())
                 .referrer(requestParameters.getReferrer())
                 .ignoreHttpErrors(true)
@@ -117,8 +117,8 @@ public class IndexPageServiceImpl implements IndexPageService{
         page.setContent(webDocument.toString());
     }
 
-    private List<Site> getSiteFromSiteRepository(IndexPage indexPage){
-        return siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(indexPage.getUrl()));
+    private List<Site> getSiteFromSiteRepository(IndexPageRequest indexPageRequest){
+        return siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(indexPageRequest.getUrl()));
     }
 
     private Site saveIndexPageSite (ConfigSite configSiteForIndexPage){
@@ -135,9 +135,9 @@ public class IndexPageServiceImpl implements IndexPageService{
         return site;
     }
 
-    private List<Page> getRepositoryPageByIndexPage(IndexPage indexPage, Site repositorySitesByIndexPage) {
+    private List<Page> getRepositoryPageByIndexPage(IndexPageRequest indexPageRequest, Site repositorySitesByIndexPage) {
         return pageRepository.findByPathAndSite(
-                UrlHandler.getPathFromUrl(indexPage.getUrl())
+                UrlHandler.getPathFromUrl(indexPageRequest.getUrl())
                 , repositorySitesByIndexPage);
     }
 

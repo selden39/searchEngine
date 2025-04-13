@@ -1,8 +1,8 @@
 package searchengine.services;
 
-import searchengine.dto.IndexPage;
+import searchengine.dto.IndexPageRequest;
 import searchengine.dto.OperationIndexingResponse;
 
 public interface IndexPageService {
-    OperationIndexingResponse postIndexPage(IndexPage indexPage) throws ServiceValidationException;
+    OperationIndexingResponse postIndexPage(IndexPageRequest indexPageRequest) throws ServiceValidationException;
 }
