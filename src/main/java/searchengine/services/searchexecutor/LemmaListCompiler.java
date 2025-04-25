@@ -7,6 +7,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.services.ServiceValidationException;
 import searchengine.services.lemmatization.Lemmatizer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class LemmaListCompiler {
     private List<String> getReducedLemmaList (List<String> lemmaList, List<Site> siteList) {
         List<Page> pageList = pageRepository.findBySiteIn(siteList);
 
-        Map<String, Double> lemmaFrequenceMap = new HashMap<>();
+        List<String> lemmaReducedList = new ArrayList<>();
         pageRepository.findLemmasCountByPage(
                     siteList.stream().map(site -> site.getId()).toList(),
                     lemmaList)
@@ -61,13 +62,10 @@ public class LemmaListCompiler {
                     String queryLemma = str.substring(0, str.indexOf(','));
                     Integer queryCount = Integer.valueOf(str.substring(str.indexOf(',') + 1));
                     Double frequency = queryCount / (double) pageList.size();
-                    lemmaFrequenceMap.put(queryLemma, frequency);
+                    if(frequency < LIMIT_OF_FREQUENCY){
+                        lemmaReducedList.add(queryLemma);
+                    }
                 });
-
-        List<String> lemmaReducedList = lemmaFrequenceMap.entrySet().stream()
-                .filter(es -> es.getValue() < LIMIT_OF_FREQUENCY)
-                .map(Map.Entry::getKey)
-                .toList();
 
         return lemmaReducedList;
     }
