@@ -1,29 +1,31 @@
 package searchengine.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.dto.SearchResponse;
-import searchengine.services.lemmatization.Lemmatizer;
+import searchengine.model.Site;
+import searchengine.repositories.PageRepository;
+import searchengine.repositories.SiteRepository;
+import searchengine.services.searchexecutor.LemmaListCompiler;
+import searchengine.utils.UrlHandler;
 
-import java.util.HashMap;
-
+import java.util.List;
+@RequiredArgsConstructor
 @Service
 public class SearchServiceImpl implements SearchService{
 
-    private final String ERROR_DESC_THERE_IS_NO_LEMMAS_IN_QUERY = "Некорректный параметр query. В полученном запросе отсутствуют леммы";
+    private final SiteRepository siteRepository;
+    private final PageRepository pageRepository;
+    private final String ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE = "Для указанного сайта нет данных";
+
     @Override
     public SearchResponse search(String query, String searchSite, Integer offset, Integer limit) throws Exception{
 
-//Разбивать поисковый запрос на отдельные слова
-//формировать из этих слов список уникальных лемм, исключая междометия, союзы, предлоги и частицы.
-        Lemmatizer lemmatizer = new Lemmatizer();
-        HashMap<String, Integer> lemmasList = lemmatizer.getLemmasFromText(query);
-        lemmatizer.getLemmasFromText(query).forEach((lemma, count) -> System.out.println(lemma + " - " + count));
-// проверить квери данные - если нет ни одной леммы???
-        if (lemmasList.isEmpty()) {
-            throw new ServiceValidationException(400, false, ERROR_DESC_THERE_IS_NO_LEMMAS_IN_QUERY);
-        }
+        List<Site> searchSiteList = getSearchSiteList(searchSite);
 
-// Исключать из полученного списка леммы, которые встречаются на слишком большом количестве страниц
+// подготовить список лемм
+        LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
+        List<String> lemmaList = lemmaListCompiler.getLemmaList();
 
 // Сортировать леммы в порядке увеличения частоты встречаемости (по возрастанию значения поля frequency) — от самых редких до самых частых.
 
@@ -39,4 +41,21 @@ public class SearchServiceImpl implements SearchService{
 
         return new SearchResponse(true, query, searchSite, offset, limit);
     }
+
+    private List<Site> getSearchSiteList(String searchSite) throws ServiceValidationException{
+        List<Site> searchSiteList;
+        if(searchSite != null && !searchSite.isEmpty()){
+            System.out.println("один сайт");
+            searchSiteList = siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(searchSite));
+        } else {
+            System.out.println("Все сайты");
+            searchSiteList = siteRepository.findAll();
+        }
+        if(searchSiteList.isEmpty()){
+            throw new ServiceValidationException(400, false, ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE);
+        }
+        searchSiteList.forEach(site -> System.out.println("==  " + site.getUrl()));
+        return searchSiteList;
+    }
+
 }
