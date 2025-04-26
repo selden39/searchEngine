@@ -10,6 +10,8 @@ import searchengine.services.searchexecutor.LemmaListCompiler;
 import searchengine.utils.UrlHandler;
 
 import java.util.List;
+import java.util.Map;
+
 @RequiredArgsConstructor
 @Service
 public class SearchServiceImpl implements SearchService{
@@ -25,9 +27,10 @@ public class SearchServiceImpl implements SearchService{
 
 // подготовить список лемм
         LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
-        List<String> lemmaList = lemmaListCompiler.getLemmaList();
+        Map<String, Double> lemmaReducedMap = lemmaListCompiler.getLemmaList();
 
 // Сортировать леммы в порядке увеличения частоты встречаемости (по возрастанию значения поля frequency) — от самых редких до самых частых.
+
 
 // алгоритм поиска страниц
 //  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается. Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
