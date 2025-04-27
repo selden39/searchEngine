@@ -27,9 +27,12 @@ public class SearchServiceImpl implements SearchService{
 
 // подготовить список лемм
         LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
-        Map<String, Double> lemmaReducedMap = lemmaListCompiler.getLemmaList();
-
+        Map<String, Double> lemmaReducedMap = lemmaListCompiler.getLemmaReducedMap();
 // Сортировать леммы в порядке увеличения частоты встречаемости (по возрастанию значения поля frequency) — от самых редких до самых частых.
+        lemmaReducedMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .forEach(es -> System.out.println(es.getValue() + " - " + es.getKey()));
+
 
 
 // алгоритм поиска страниц
