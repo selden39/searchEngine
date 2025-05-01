@@ -31,12 +31,14 @@ public class SearchServiceImpl implements SearchService{
         LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
         Set<LemmaEnriched> lemmaReducedCollection = lemmaListCompiler.compileLemmaCollection();
 
-
-
-
 // алгоритм поиска страниц
-//  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается. Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
-        //TODO Обогащать TreeSet  <LemmaEnriched>
+//  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается.
+//  Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
+        System.out.println(" === lemmaReducedCollection ");
+        lemmaReducedCollection.forEach(l -> System.out.println(l.getFrequency() + " - " + l.getLemma()));
+
+
+
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
 
 // рассчитывать по каждой из страниц релевантность

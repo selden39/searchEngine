@@ -44,21 +44,6 @@ public class LemmaListCompiler {
     private Set<LemmaEnriched> prepareReducedLemmaCollection(List<String> lemmaList, List<Site> siteList) {
         List<Page> pageList = pageRepository.findBySiteIn(siteList);
 
-/*
-        Map<String, Double> lemmaReducedMap = new HashMap<>();
-
-        pageRepository.findLemmasCountByPage(
-                    siteList.stream().map(site -> site.getId()).toList(),
-                    lemmaList)
-                .forEach(str -> {
-                    String queryLemma = str.substring(0, str.indexOf(','));
-                    Integer queryCount = Integer.valueOf(str.substring(str.indexOf(',') + 1));
-                    Double frequency = queryCount / (double) pageList.size();
-                    if(frequency < LIMIT_OF_FREQUENCY){
-                        lemmaReducedMap.put(queryLemma, frequency);
-                    }
-                });
- */
         TreeSet<LemmaEnriched> lemmaEnrichedSet = new TreeSet<>(Comparator.comparing(LemmaEnriched::getFrequency)
                 .thenComparing(LemmaEnriched::getLemma));
         pageRepository.findLemmasCountByPage(
