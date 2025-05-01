@@ -6,11 +6,12 @@ import searchengine.dto.SearchResponse;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.searchexecutor.LemmaEnriched;
 import searchengine.services.searchexecutor.LemmaListCompiler;
 import searchengine.utils.UrlHandler;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -26,17 +27,16 @@ public class SearchServiceImpl implements SearchService{
         List<Site> searchSiteList = getSearchSiteList(searchSite);
 
 // подготовить список лемм
-        LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
-        Map<String, Double> lemmaReducedMap = lemmaListCompiler.getLemmaReducedMap();
 // Сортировать леммы в порядке увеличения частоты встречаемости (по возрастанию значения поля frequency) — от самых редких до самых частых.
-        lemmaReducedMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
-                .forEach(es -> System.out.println(es.getValue() + " - " + es.getKey()));
+        LemmaListCompiler lemmaListCompiler = new LemmaListCompiler(query, searchSiteList, pageRepository);
+        Set<LemmaEnriched> lemmaReducedCollection = lemmaListCompiler.compileLemmaCollection();
+
 
 
 
 // алгоритм поиска страниц
 //  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается. Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
+        //TODO Обогащать TreeSet  <LemmaEnriched>
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
 
 // рассчитывать по каждой из страниц релевантность
