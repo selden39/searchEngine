@@ -3,6 +3,7 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.dto.SearchResponse;
+import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
@@ -10,8 +11,11 @@ import searchengine.services.searchexecutor.LemmaEnriched;
 import searchengine.services.searchexecutor.LemmaListCompiler;
 import searchengine.utils.UrlHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RequiredArgsConstructor
 @Service
@@ -24,6 +28,7 @@ public class SearchServiceImpl implements SearchService{
     @Override
     public SearchResponse search(String query, String searchSite, Integer offset, Integer limit) throws Exception{
 
+        //TODO по всем проиндексированным сайтам - добавить ограничение на INDEXED
         List<Site> searchSiteList = getSearchSiteList(searchSite);
 
 // подготовить список лемм
@@ -34,10 +39,28 @@ public class SearchServiceImpl implements SearchService{
 // алгоритм поиска страниц
 //  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается.
 //  Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
-        System.out.println(" === lemmaReducedCollection ");
-        lemmaReducedCollection.forEach(l -> System.out.println(l.getFrequency() + " - " + l.getLemma()));
 
+        AtomicReference<List<Page>> lemmasOnPageList = new AtomicReference<>(new ArrayList<>());
+        AtomicBoolean isFirstFilling = new AtomicBoolean(true);
 
+        lemmaReducedCollection.forEach(lemmaEnriched -> {
+            lemmaEnriched.setPagesOfPresence(
+                    pageRepository.findPagesListByLemmaAndSitelist(
+                            lemmaEnriched.getLemma(),
+                            searchSiteList.stream().map(site -> site.getId()).toList()
+                    ));
+            if (lemmasOnPageList.get().isEmpty() && isFirstFilling.get()){
+                lemmasOnPageList.set(lemmaEnriched.getPagesOfPresence());
+                isFirstFilling.set(false);
+            } else {
+                lemmasOnPageList.get().retainAll(lemmaEnriched.getPagesOfPresence());
+            }
+            System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
+            lemmaEnriched.getPagesOfPresence().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
+            System.out.println();
+            lemmasOnPageList.get().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
+            System.out.println();
+        });
 
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
 

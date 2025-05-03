@@ -10,7 +10,7 @@ import java.util.Objects;
 @Getter
 @Setter
 public class LemmaEnriched {
-    private String lemma;
+    private final String lemma;
     private Integer pageCount;
     private Double frequency;
     private List<Page> pagesOfPresence;

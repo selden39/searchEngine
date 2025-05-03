@@ -23,5 +23,17 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "AND s.id in (:siteIdList) " +
             "Group by l.lemma"
             , nativeQuery = true)
+
     List<String> findLemmasCountByPage(List<Integer> siteIdList, List<String> lemmaList);
+    @Query(value =
+            "SELECT p.* " +
+                    "FROM search_engine.lemmas l " +
+                    "JOIN search_engine.sites s ON l.site_id = s.id " +
+                    "JOIN search_engine.indexes i ON i.lemma_id = l.id " +
+                    "JOIN search_engine.pages p ON i.page_id = p.id " +
+                    "WHERE s.id IN (:siteIdList) " +
+                    "AND l.lemma IN (:lemma)"
+            , nativeQuery = true
+    )
+    List<Page> findPagesListByLemmaAndSitelist(String lemma, List<Integer> siteIdList);
 }
