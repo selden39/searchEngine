@@ -12,6 +12,7 @@ import java.util.List;
 public interface SiteRepository extends JpaRepository<Site,Integer> {
     List<Site> findByStatus(Status status);
     List<Site> findByUrl(String url);
+    List<Site> findByUrlAndStatus(String url, Status status);
     List<Site> findByUrlIn(List<String> urls);
     @Transactional
     void deleteSiteByIdIn(List<Integer> idList);

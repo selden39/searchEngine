@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.dto.SearchResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.searchexecutor.LemmaEnriched;
@@ -23,7 +24,7 @@ public class SearchServiceImpl implements SearchService{
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
-    private final String ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE = "Для указанного сайта нет данных";
+    private final String ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE = "Для указанного сайта нет данных или не выполнена индексация сайта";
 
     @Override
     public SearchResponse search(String query, String searchSite, Integer offset, Integer limit) throws Exception{
@@ -76,11 +77,11 @@ public class SearchServiceImpl implements SearchService{
     private List<Site> getSearchSiteList(String searchSite) throws ServiceValidationException{
         List<Site> searchSiteList;
         if(searchSite != null && !searchSite.isEmpty()){
-            System.out.println("один сайт");
-            searchSiteList = siteRepository.findByUrl(UrlHandler.getPrettyRootUrl(searchSite));
+            System.out.println("=== один сайт");
+            searchSiteList = siteRepository.findByUrlAndStatus(UrlHandler.getPrettyRootUrl(searchSite), Status.INDEXED);
         } else {
-            System.out.println("Все сайты");
-            searchSiteList = siteRepository.findAll();
+            System.out.println("=== Все сайты");
+            searchSiteList = siteRepository.findByStatus(Status.INDEXED);
         }
         if(searchSiteList.isEmpty()){
             throw new ServiceValidationException(400, false, ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE);
