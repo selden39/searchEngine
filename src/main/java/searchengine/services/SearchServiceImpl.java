@@ -29,7 +29,6 @@ public class SearchServiceImpl implements SearchService{
     @Override
     public SearchResponse search(String query, String searchSite, Integer offset, Integer limit) throws Exception{
 
-        //TODO по всем проиндексированным сайтам - добавить ограничение на INDEXED
         List<Site> searchSiteList = getSearchSiteList(searchSite);
 
 // подготовить список лемм
@@ -41,7 +40,7 @@ public class SearchServiceImpl implements SearchService{
 //  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается.
 //  Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
 
-        AtomicReference<List<Page>> lemmasOnPageList = new AtomicReference<>(new ArrayList<>());
+        AtomicReference<List<Page>> pagesWithWholeLemmas = new AtomicReference<>(new ArrayList<>());
         AtomicBoolean isFirstFilling = new AtomicBoolean(true);
 
         lemmaReducedCollection.forEach(lemmaEnriched -> {
@@ -50,20 +49,21 @@ public class SearchServiceImpl implements SearchService{
                             lemmaEnriched.getLemma(),
                             searchSiteList.stream().map(site -> site.getId()).toList()
                     ));
-            if (lemmasOnPageList.get().isEmpty() && isFirstFilling.get()){
-                lemmasOnPageList.set(lemmaEnriched.getPagesOfPresence());
+            if (pagesWithWholeLemmas.get().isEmpty() && isFirstFilling.get()){
+                pagesWithWholeLemmas.set(lemmaEnriched.getPagesOfPresence());
                 isFirstFilling.set(false);
             } else {
-                lemmasOnPageList.get().retainAll(lemmaEnriched.getPagesOfPresence());
+                pagesWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesOfPresence());
             }
             System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
             lemmaEnriched.getPagesOfPresence().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
             System.out.println();
-            lemmasOnPageList.get().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
+            pagesWithWholeLemmas.get().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
             System.out.println();
         });
 
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
+        //TODO вернуться после формирования ответа
 
 // рассчитывать по каждой из страниц релевантность
 // Для каждой страницы рассчитывать абсолютную релевантность
