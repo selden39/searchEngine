@@ -64,6 +64,10 @@ public class SearchServiceImpl implements SearchService{
 
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
         //TODO вернуться после формирования ответа
+        if(pagesWithWholeLemmas.get().isEmpty()){
+            System.out.println("=== список страниц пустой");
+            return null;
+        }
 
 // рассчитывать по каждой из страниц релевантность
 // Для каждой страницы рассчитывать абсолютную релевантность
