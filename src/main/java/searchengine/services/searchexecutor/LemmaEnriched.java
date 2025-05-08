@@ -14,6 +14,7 @@ public class LemmaEnriched {
     private Integer pageCount;
     private Double frequency;
     private List<Page> pagesOfPresence;
+    private List<PageEnriched> pagesEnrichedOfPresence;
 
     public LemmaEnriched(String lemma, Double frequency){
         this.lemma = lemma;
