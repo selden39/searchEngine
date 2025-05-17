@@ -72,6 +72,7 @@ public class SearchServiceImpl implements SearchService{
     // для каждой Enriched леммы
         lemmaReducedCollection.forEach(lemmaEnriched -> {
     // получаем из репо список страниц где она присутствует
+            // TODO вот тут нужно добавить lemma_rank, получим Map Page - lemma_rank
             Set<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
                     lemmaEnriched.getLemma(),
                     searchSiteList.stream().map(site -> site.getId()).toList()
@@ -96,7 +97,7 @@ public class SearchServiceImpl implements SearchService{
             pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
                 pageEnriched.addToLemmaEnrichList(lemmaEnriched);
             });
-
+    // отладочная информация
             System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
             lemmaEnriched.getPagesEnrichedOfPresence().forEach(pe -> System.out.print(pe.getPage().getId() + " + " + pe.getPage().getPath() + " |  "));
             System.out.println();

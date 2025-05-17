@@ -12,10 +12,14 @@ import java.util.Set;
 
 public interface PageRepository extends JpaRepository<Page, Integer> {
     List<Page> findByPath(String path);
+
     List<Page> findByPathAndSite(String path, Site site);
+
     List<Page> findBySiteIn(List<Site> siteList);
+
     @Transactional
     void deletePageByIdIn(List<Integer> idList);
+
     @Query(value = "SELECT l.lemma, count(i.page_id) " +
             "FROM lemmas l " +
             "LEFT JOIN indexes i on l.id = i.lemma_id " +
@@ -24,7 +28,6 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "AND s.id in (:siteIdList) " +
             "Group by l.lemma"
             , nativeQuery = true)
-
     List<String> findLemmasCountByPage(List<Integer> siteIdList, List<String> lemmaList);
     @Query(value =
             "SELECT p.* " +
