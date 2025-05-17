@@ -8,6 +8,7 @@ import searchengine.model.Site;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface PageRepository extends JpaRepository<Page, Integer> {
     List<Page> findByPath(String path);
@@ -35,5 +36,5 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
                     "AND l.lemma IN (:lemma)"
             , nativeQuery = true
     )
-    List<Page> findPagesListByLemmaAndSitelist(String lemma, List<Integer> siteIdList);
+    Set<Page> findPagesListByLemmaAndSitelist(String lemma, List<Integer> siteIdList);
 }

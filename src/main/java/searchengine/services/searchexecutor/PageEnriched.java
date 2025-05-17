@@ -4,9 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import searchengine.model.Page;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Getter
 @Setter
@@ -15,15 +13,15 @@ public class PageEnriched {
     private String title;
     private String snippet;
     private Double relevance;
-    private List<LemmaEnriched> lemmaEnrichedList;
+    private Set<LemmaEnriched> lemmaEnrichedSet;
 
     public PageEnriched(Page page){
         this.page = page;
-        lemmaEnrichedList = new ArrayList<>();
+        lemmaEnrichedSet = new HashSet<>();
     }
 
     public void addToLemmaEnrichList(LemmaEnriched lemmaEnriched){
-        lemmaEnrichedList.add(lemmaEnriched);
+        lemmaEnrichedSet.add(lemmaEnriched);
     }
 
     @Override

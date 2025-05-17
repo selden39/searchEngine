@@ -6,6 +6,7 @@ import searchengine.model.Page;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -13,8 +14,8 @@ public class LemmaEnriched {
     private final String lemma;
     private Integer pageCount;
     private Double frequency;
-    private List<Page> pagesOfPresence;
-    private List<PageEnriched> pagesEnrichedOfPresence;
+    private Set<Page> pagesOfPresence;
+    private Set<PageEnriched> pagesEnrichedOfPresence;
 
     public LemmaEnriched(String lemma, Double frequency){
         this.lemma = lemma;

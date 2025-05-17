@@ -42,9 +42,9 @@ public class SearchServiceImpl implements SearchService{
 // алгоритм поиска страниц
 //  По первой, самой редкой лемме из списка, находить все страницы, на которых она встречается.
 //  Далее искать соответствия следующей леммы из этого списка страниц, а затем повторять операцию по каждой следующей лемме.
-
+/*
         // TODO переделать на формирование сразу pagesEnrichedWithWholeLemmas и заполнение списка лемм для каждой PageEnriched
-        AtomicReference<List<Page>> pagesWithWholeLemmas = new AtomicReference<>(new ArrayList<>());
+        AtomicReference<Set<Page>> pagesWithWholeLemmas = new AtomicReference<>(new HashSet<>());
         AtomicBoolean isFirstFilling = new AtomicBoolean(true);
 
         lemmaReducedCollection.forEach(lemmaEnriched -> {
@@ -65,25 +65,25 @@ public class SearchServiceImpl implements SearchService{
             pagesWithWholeLemmas.get().forEach(p -> System.out.print(p.getId() + " + " + p.getPath() + " |  "));
             System.out.println();
         });
-
+*/
         System.out.println("=== pagesEnrichedWithWholeLemmas");
         AtomicReference<Set<PageEnriched>> pagesEnrichedWithWholeLemmas = new AtomicReference<>(new HashSet<>());
         AtomicBoolean isFirstFillingE = new AtomicBoolean(true);
-    // для каждой леммы
+    // для каждой Enriched леммы
         lemmaReducedCollection.forEach(lemmaEnriched -> {
-            //TODO потом попробовать переделать на SET
-    // получаем список страниц где она присутствует
-            List<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
+    // получаем из репо список страниц где она присутствует
+            Set<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
                     lemmaEnriched.getLemma(),
                     searchSiteList.stream().map(site -> site.getId()).toList()
             );
     // для каждой страницы создаем Enriched страницу
-            List<PageEnriched> pageEnrichedOfPresenceList = pageOfPresenceList.stream()
+            Set<PageEnriched> pageEnrichedOfPresenceList = pageOfPresenceList.stream()
                     .map(pageOfPresence -> {
                         PageEnriched pageEnriched = new PageEnriched(pageOfPresence);
                         return pageEnriched;
                     })
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
+    // список Enriched страниц добавляем в Enriched лемму
             lemmaEnriched.setPagesEnrichedOfPresence(pageEnrichedOfPresenceList);
     // заполняем список Enriched страниц, на которых есть лемма
             if (pagesEnrichedWithWholeLemmas.get().isEmpty() && isFirstFillingE.get()){
@@ -92,6 +92,7 @@ public class SearchServiceImpl implements SearchService{
                 pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresence());
             }
     // для каждой Enriched страницы добавляем текущую Enriched лемму в lemmaEnrichedList
+            // на выходе получаем список Enriched страницы со списком Enriched лемм в нем
             pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
                 pageEnriched.addToLemmaEnrichList(lemmaEnriched);
             });
@@ -103,7 +104,9 @@ public class SearchServiceImpl implements SearchService{
             System.out.println();
             System.out.print("== le: ");
             pagesEnrichedWithWholeLemmas.get().forEach(pe -> {
-                pe.getLemmaEnrichedList().forEach(le -> {
+                System.out.println();
+                System.out.println(pe.getPage().getPath());
+                pe.getLemmaEnrichedSet().forEach(le -> {
                     System.out.print(" " + le.getLemma());
                 });
             });
@@ -111,9 +114,10 @@ public class SearchServiceImpl implements SearchService{
 
         });
 
+
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
         //TODO вернуться после формирования ответа
-        if(pagesWithWholeLemmas.get().isEmpty()){
+        if(pagesEnrichedWithWholeLemmas.get().isEmpty()){
             System.out.println("=== список страниц пустой");
             return null;
         }
@@ -121,8 +125,8 @@ public class SearchServiceImpl implements SearchService{
 // рассчитывать по каждой из страниц релевантность
 // Для каждой страницы рассчитывать абсолютную релевантность
         // просто получили список обогащенных страниц
-        List<PageEnriched> pagesEnrichedWithWholeLemmasOld = pagesWithWholeLemmas.get().stream()
-                .map(page -> new PageEnriched(page))
+        List<PageEnriched> pagesEnrichedWithWholeLemmasOld = pagesEnrichedWithWholeLemmas.get().stream()
+                .map(page -> new PageEnriched(page.getPage()))
                 .collect(Collectors.toList());
         // добавляем релевантность
         pagesEnrichedWithWholeLemmasOld.forEach(pe -> {
