@@ -13,10 +13,7 @@ import searchengine.services.searchexecutor.LemmaListCompiler;
 import searchengine.services.searchexecutor.PageEnriched;
 import searchengine.utils.UrlHandler;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -84,8 +81,18 @@ public class SearchServiceImpl implements SearchService{
                         return pageEnriched;
                     })
                     .collect(Collectors.toSet());
+
+            Map<PageEnriched, Integer> pageEnrichedOfPresenceListWithLemmaRank = new HashMap<>();
+            pageEnrichedOfPresenceList.forEach(pageEnriched -> {
+                int lemmaRank = pageRepository.findRankByPageAndLemma(
+                        pageEnriched.getPage().getId(),
+                        lemmaEnriched.getLemma())
+                        .get(0);
+            });
+
     // список Enriched страниц добавляем в Enriched лемму
             lemmaEnriched.setPagesEnrichedOfPresence(pageEnrichedOfPresenceList);
+            lemmaEnriched.setPagesEnrichedOfPresenceWithLemmaRank(pageEnrichedOfPresenceListWithLemmaRank);
     // заполняем список Enriched страниц, на которых есть лемма
             if (pagesEnrichedWithWholeLemmas.get().isEmpty() && isFirstFillingE.get()){
                 pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresence().stream().collect(Collectors.toSet()));

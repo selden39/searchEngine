@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import searchengine.model.Page;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,6 +16,7 @@ public class LemmaEnriched {
     private Double frequency;
     private Set<Page> pagesOfPresence;
     private Set<PageEnriched> pagesEnrichedOfPresence;
+    private Map<PageEnriched, Integer> pagesEnrichedOfPresenceWithLemmaRank;
 
     public LemmaEnriched(String lemma, Double frequency){
         this.lemma = lemma;

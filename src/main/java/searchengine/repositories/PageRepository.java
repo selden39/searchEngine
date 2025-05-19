@@ -40,4 +40,15 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             , nativeQuery = true
     )
     Set<Page> findPagesListByLemmaAndSitelist(String lemma, List<Integer> siteIdList);
+
+    @Query(value =
+            "SELECT i.lemma_rank " +
+                    "FROM search_engine.indexes i " +
+                    "JOIN search_engine.pages p ON i.page_id = p.id " +
+                    "JOIN search_engine.lemmas l ON i.lemma_id = l.id " +
+                    "WHERE p.id = :pageId " +
+                    "AND l.lemma = :lemma"
+            , nativeQuery = true
+    )
+    List<Integer> findRankByPageAndLemma(Integer pageId, String lemma);
 }
