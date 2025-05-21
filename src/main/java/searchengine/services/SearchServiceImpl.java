@@ -88,6 +88,7 @@ public class SearchServiceImpl implements SearchService{
                         pageEnriched.getPage().getId(),
                         lemmaEnriched.getLemma())
                         .get(0);
+                pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, lemmaRank);
             });
 
     // список Enriched страниц добавляем в Enriched лемму
