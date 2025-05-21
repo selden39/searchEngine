@@ -112,6 +112,7 @@ public class SearchServiceImpl implements SearchService{
             if (pagesEnrichedWithWholeLemmas.get().isEmpty() && isFirstFillingE.get()){
 //                pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresence().stream().collect(Collectors.toSet()));
                 pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank().keySet());
+                isFirstFillingE.set(false);
             } else {
 //                pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresence());
                 pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank().keySet());
