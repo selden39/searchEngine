@@ -75,6 +75,7 @@ public class SearchServiceImpl implements SearchService{
                     searchSiteList.stream().map(site -> site.getId()).toList()
             );
     // для каждой страницы создаем Enriched страницу
+/*
             Set<PageEnriched> pageEnrichedOfPresenceList = pageOfPresenceList.stream()
                     .map(pageOfPresence -> {
                         PageEnriched pageEnriched = new PageEnriched(pageOfPresence);
@@ -82,23 +83,38 @@ public class SearchServiceImpl implements SearchService{
                     })
                     .collect(Collectors.toSet());
 
-            Map<PageEnriched, Integer> pageEnrichedOfPresenceListWithLemmaRank = new HashMap<>();
+            Map<PageEnriched, Integer> pageEnrichedOfPresenceListWithLemmaRank_old = new HashMap<>();
             pageEnrichedOfPresenceList.forEach(pageEnriched -> {
                 int lemmaRank = pageRepository.findRankByPageAndLemma(
                         pageEnriched.getPage().getId(),
                         lemmaEnriched.getLemma())
                         .get(0);
-                pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, lemmaRank);
+                pageEnrichedOfPresenceListWithLemmaRank_old.put(pageEnriched, lemmaRank);
             });
+*/
+            Map<PageEnriched, Integer> pageEnrichedOfPresenceListWithLemmaRank= new HashMap<>();
+            pageOfPresenceList.stream()
+                    .map(pageOfPresence -> {
+                        PageEnriched pageEnriched = new PageEnriched(pageOfPresence);
+                        return pageEnriched;
+                    })
+                    .forEach(pageEnriched -> {
+                        int lemmaRank = pageRepository.findRankByPageAndLemma(
+                                pageEnriched.getPage().getId(),
+                                lemmaEnriched.getLemma()
+                        ).get(0);
+                        pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, lemmaRank);
+                    });
 
     // список Enriched страниц добавляем в Enriched лемму
-            lemmaEnriched.setPagesEnrichedOfPresence(pageEnrichedOfPresenceList);
             lemmaEnriched.setPagesEnrichedOfPresenceWithLemmaRank(pageEnrichedOfPresenceListWithLemmaRank);
     // заполняем список Enriched страниц, на которых есть лемма
             if (pagesEnrichedWithWholeLemmas.get().isEmpty() && isFirstFillingE.get()){
-                pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresence().stream().collect(Collectors.toSet()));
+//                pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresence().stream().collect(Collectors.toSet()));
+                pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank().keySet());
             } else {
-                pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresence());
+//                pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresence());
+                pagesEnrichedWithWholeLemmas.get().retainAll(lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank().keySet());
             }
     // для каждой Enriched страницы добавляем текущую Enriched лемму в lemmaEnrichedList
             // на выходе получаем список Enriched страницы со списком Enriched лемм в нем
@@ -107,7 +123,8 @@ public class SearchServiceImpl implements SearchService{
             });
     // отладочная информация
             System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
-            lemmaEnriched.getPagesEnrichedOfPresence().forEach(pe -> System.out.print(pe.getPage().getId() + " + " + pe.getPage().getPath() + " |  "));
+            lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank()
+                    .forEach((k,v) -> System.out.print(k.getPage().getId()  + " + " + k.getPage().getPath() + " |  "));
             System.out.println();
             pagesEnrichedWithWholeLemmas.get().forEach(pe -> System.out.print(pe.getPage().getId() + " + " + pe.getPage().getPath() + " |  "));
             System.out.println();

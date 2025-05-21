@@ -15,7 +15,10 @@ public class LemmaEnriched {
     private Integer pageCount;
     private Double frequency;
     private Set<Page> pagesOfPresence;
+/*
     private Set<PageEnriched> pagesEnrichedOfPresence;
+    private Map<PageEnriched, Integer> pagesEnrichedOfPresenceWithLemmaRank_old;
+ */
     private Map<PageEnriched, Integer> pagesEnrichedOfPresenceWithLemmaRank;
 
     public LemmaEnriched(String lemma, Double frequency){
