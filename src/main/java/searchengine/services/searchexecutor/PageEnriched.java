@@ -12,16 +12,21 @@ public class PageEnriched {
     private final Page page;
     private String title;
     private String snippet;
-    private Double relevance;
+    private Double relevanceAbs;
     private Set<LemmaEnriched> lemmaEnrichedSet;
 
     public PageEnriched(Page page){
         this.page = page;
         lemmaEnrichedSet = new HashSet<>();
+        relevanceAbs = 0.0;
     }
 
     public void addToLemmaEnrichList(LemmaEnriched lemmaEnriched){
         lemmaEnrichedSet.add(lemmaEnriched);
+    }
+
+    public void increaseRelevanceAbs(Double rank){
+        relevanceAbs = relevanceAbs + rank;
     }
 
     @Override

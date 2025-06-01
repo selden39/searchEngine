@@ -19,7 +19,7 @@ public class LemmaEnriched {
     private Set<PageEnriched> pagesEnrichedOfPresence;
     private Map<PageEnriched, Integer> pagesEnrichedOfPresenceWithLemmaRank_old;
  */
-    private Map<PageEnriched, Integer> pagesEnrichedOfPresenceWithLemmaRank;
+    private Map<PageEnriched, Double> pagesEnrichedOfPresenceWithLemmaRank;
 
     public LemmaEnriched(String lemma, Double frequency){
         this.lemma = lemma;

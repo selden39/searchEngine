@@ -63,13 +63,12 @@ public class SearchServiceImpl implements SearchService{
             System.out.println();
         });
 */
-        System.out.println("=== pagesEnrichedWithWholeLemmas");
+        System.out.println("=== Леммы и страницы, которых они находятся ");
         AtomicReference<Set<PageEnriched>> pagesEnrichedWithWholeLemmas = new AtomicReference<>(new HashSet<>());
         AtomicBoolean isFirstFillingE = new AtomicBoolean(true);
     // для каждой Enriched леммы
         lemmaReducedCollection.forEach(lemmaEnriched -> {
     // получаем из репо список страниц где она присутствует
-            // TODO вот тут нужно добавить lemma_rank, получим Map Page - lemma_rank
             Set<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
                     lemmaEnriched.getLemma(),
                     searchSiteList.stream().map(site -> site.getId()).toList()
@@ -92,18 +91,19 @@ public class SearchServiceImpl implements SearchService{
                 pageEnrichedOfPresenceListWithLemmaRank_old.put(pageEnriched, lemmaRank);
             });
 */
-            Map<PageEnriched, Integer> pageEnrichedOfPresenceListWithLemmaRank= new HashMap<>();
+            Map<PageEnriched, Double> pageEnrichedOfPresenceListWithLemmaRank = new HashMap<>();
             pageOfPresenceList.stream()
                     .map(pageOfPresence -> {
-                        PageEnriched pageEnriched = new PageEnriched(pageOfPresence);
+                        PageEnriched pageEnriched = getPageEnrichedByPage (pagesEnrichedWithWholeLemmas.get(), pageOfPresence);
                         return pageEnriched;
                     })
                     .forEach(pageEnriched -> {
-                        int lemmaRank = pageRepository.findRankByPageAndLemma(
+                        Double lemmaRank = pageRepository.findRankByPageAndLemma(
                                 pageEnriched.getPage().getId(),
                                 lemmaEnriched.getLemma()
                         ).get(0);
-                        pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, lemmaRank);
+                        pageEnriched.increaseRelevanceAbs(lemmaRank);
+                        pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, pageEnriched.getRelevanceAbs());
                     });
 
     // список Enriched страниц добавляем в Enriched лемму
@@ -124,21 +124,25 @@ public class SearchServiceImpl implements SearchService{
             });
     // отладочная информация
             System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
+            System.out.println("    Лемма присутствует на страницах: ");
             lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank()
-                    .forEach((k,v) -> System.out.print(k.getPage().getId()  + " + " + k.getPage().getPath() + " |  "));
+                    .forEach((k,v) -> System.out.print("    " + k.getPage().getId()  + " + " + k.getPage().getPath() + " |  "));
             System.out.println();
-            pagesEnrichedWithWholeLemmas.get().forEach(pe -> System.out.print(pe.getPage().getId() + " + " + pe.getPage().getPath() + " |  "));
-            System.out.println();
-            System.out.print("== le: ");
-            pagesEnrichedWithWholeLemmas.get().forEach(pe -> {
-                System.out.println();
-                System.out.println(pe.getPage().getPath());
-                pe.getLemmaEnrichedSet().forEach(le -> {
-                    System.out.print(" " + le.getLemma());
-                });
-            });
+            System.out.println("    Общий список страниц для всех лемм: ");
+            pagesEnrichedWithWholeLemmas.get().forEach(pe -> System.out.print("    " + pe.getPage().getId() + " + " + pe.getPage().getPath() + " |  "));
             System.out.println();
 
+        });
+
+// отладочная информация
+        System.out.println();
+        System.out.println("=== pages info ====");
+        pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
+            System.out.println(pageEnriched.getPage().getId() + " - " + pageEnriched.getPage().getPath() + " - " + pageEnriched.getRelevanceAbs());
+            System.out.println("    lemma list: ");
+            pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
+                System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
+            });
         });
 
 
@@ -182,9 +186,17 @@ public class SearchServiceImpl implements SearchService{
         return searchSiteList;
     }
 
-    private List<PageEnriched> fillRankPageEnriched (){
-
-        return null;
+    private PageEnriched getPageEnrichedByPage (Set<PageEnriched> pagesEnrichedWithWholeLemmasSet, Page pageOfPresence){
+        PageEnriched resultPageEnriched = null;
+        for (PageEnriched pageEnriched : pagesEnrichedWithWholeLemmasSet) {
+            if (pageEnriched.getPage().equals(pageOfPresence)) {
+                resultPageEnriched = pageEnriched;
+            }
+        }
+        if (resultPageEnriched == null) {
+            resultPageEnriched = new PageEnriched(pageOfPresence);
+        }
+        return resultPageEnriched;
     }
 
 }

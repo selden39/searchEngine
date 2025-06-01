@@ -50,5 +50,5 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
                     "AND l.lemma = :lemma"
             , nativeQuery = true
     )
-    List<Integer> findRankByPageAndLemma(Integer pageId, String lemma);
+    List<Double> findRankByPageAndLemma(Integer pageId, String lemma);
 }
