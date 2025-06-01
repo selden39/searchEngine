@@ -25,6 +25,7 @@ public class SearchServiceImpl implements SearchService{
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final String ERROR_DESC_THERE_IS_NO_DATA_FOR_SITE = "Для указанного сайта нет данных или не выполнена индексация сайта";
+    private final String ERROR_DESC_GET_MAX_RELEVANCE_ABS_ERROR = "Возникла непредвиденная ошибка при расчете абсолютной релевантности";
 
     @Override
     public SearchResponse search(String query, String searchSite, Integer offset, Integer limit) throws Exception{
@@ -157,7 +158,14 @@ public class SearchServiceImpl implements SearchService{
 
 // Сортировать страницы по убыванию релевантности (от большей к меньшей) и выдавать в виде списка объектов со следующими полями
 // тут нужно, видимо, рассчитать относительную релевантность
+        Set<PageEnriched> pagesEnrichedWithWholeLemmasSorted = new TreeSet<>();
+        Double RelevanceAbsMax = pagesEnrichedWithWholeLemmas.get().stream()
+                .map(pageEnriched -> pageEnriched.getRelevanceAbs())
+                .max(Double::compare)
+                .orElseThrow(() -> new ServiceValidationException(false, ERROR_DESC_GET_MAX_RELEVANCE_ABS_ERROR));
 
+        //TODO теперь надо рассчитать относительную релевантность - добавить поле в PE + рассчитать + положить в pagesEnrichedWithWholeLemmasSorted
+        System.out.println("RelevanceAbsMax: " + RelevanceAbsMax);
 
 
 
