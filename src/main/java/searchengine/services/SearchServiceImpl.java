@@ -98,6 +98,8 @@ public class SearchServiceImpl implements SearchService{
                         return pageEnriched;
                     })
                     .forEach(pageEnriched -> {
+    // рассчитывать по каждой из страниц релевантность
+    // Для каждой страницы рассчитывать абсолютную релевантность
                         Double lemmaRank = pageRepository.findRankByPageAndLemma(
                                 pageEnriched.getPage().getId(),
                                 lemmaEnriched.getLemma()
@@ -108,7 +110,7 @@ public class SearchServiceImpl implements SearchService{
 
     // список Enriched страниц добавляем в Enriched лемму
             lemmaEnriched.setPagesEnrichedOfPresenceWithLemmaRank(pageEnrichedOfPresenceListWithLemmaRank);
-    // заполняем список Enriched страниц, на которых есть лемма
+    // формируем общий список Enriched страниц, на которых есть лемма
             if (pagesEnrichedWithWholeLemmas.get().isEmpty() && isFirstFillingE.get()){
 //                pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresence().stream().collect(Collectors.toSet()));
                 pagesEnrichedWithWholeLemmas.set(lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank().keySet());
@@ -153,18 +155,10 @@ public class SearchServiceImpl implements SearchService{
             return null;
         }
 
-// рассчитывать по каждой из страниц релевантность
-// Для каждой страницы рассчитывать абсолютную релевантность
-        // просто получили список обогащенных страниц
-        List<PageEnriched> pagesEnrichedWithWholeLemmasOld = pagesEnrichedWithWholeLemmas.get().stream()
-                .map(page -> new PageEnriched(page.getPage()))
-                .collect(Collectors.toList());
-        // добавляем релевантность
-        pagesEnrichedWithWholeLemmasOld.forEach(pe -> {
-
-        });
-
 // Сортировать страницы по убыванию релевантности (от большей к меньшей) и выдавать в виде списка объектов со следующими полями
+// тут нужно, видимо, рассчитать относительную релевантность
+
+
 
 
         return new SearchResponse(true, query, searchSite, offset, limit);
