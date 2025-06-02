@@ -174,6 +174,14 @@ public class SearchServiceImpl implements SearchService{
                 System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
             });
         });
+        System.out.println(" === sorted === ");
+        pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
+            System.out.println(pageEnriched.getPage().getId() + " - "
+                    + pageEnriched.getPage().getPath() + " - "
+                    + pageEnriched.getRelevanceAbs() + " - "
+                    + pageEnriched.getRelevanceRel()
+            );
+        });
 
 
 
