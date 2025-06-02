@@ -11,6 +11,7 @@ import searchengine.repositories.SiteRepository;
 import searchengine.services.searchexecutor.LemmaEnriched;
 import searchengine.services.searchexecutor.LemmaListCompiler;
 import searchengine.services.searchexecutor.PageEnriched;
+import searchengine.services.searchexecutor.PageEnrichedComparatorByRelevanceRel;
 import searchengine.utils.UrlHandler;
 
 import java.util.*;
@@ -137,18 +138,6 @@ public class SearchServiceImpl implements SearchService{
 
         });
 
-// отладочная информация
-        System.out.println();
-        System.out.println("=== pages info ====");
-        pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
-            System.out.println(pageEnriched.getPage().getId() + " - " + pageEnriched.getPage().getPath() + " - " + pageEnriched.getRelevanceAbs());
-            System.out.println("    lemma list: ");
-            pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
-                System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
-            });
-        });
-
-
 // Если в итоге не осталось ни одной страницы, то выводить пустой список
         //TODO вернуться после формирования ответа
         if(pagesEnrichedWithWholeLemmas.get().isEmpty()){
@@ -158,14 +147,33 @@ public class SearchServiceImpl implements SearchService{
 
 // Сортировать страницы по убыванию релевантности (от большей к меньшей) и выдавать в виде списка объектов со следующими полями
 // тут нужно, видимо, рассчитать относительную релевантность
-        Set<PageEnriched> pagesEnrichedWithWholeLemmasSorted = new TreeSet<>();
-        Double RelevanceAbsMax = pagesEnrichedWithWholeLemmas.get().stream()
+        Double relevanceAbsMax = pagesEnrichedWithWholeLemmas.get().stream()
                 .map(pageEnriched -> pageEnriched.getRelevanceAbs())
                 .max(Double::compare)
                 .orElseThrow(() -> new ServiceValidationException(false, ERROR_DESC_GET_MAX_RELEVANCE_ABS_ERROR));
 
-        //TODO теперь надо рассчитать относительную релевантность - добавить поле в PE + рассчитать + положить в pagesEnrichedWithWholeLemmasSorted
-        System.out.println("RelevanceAbsMax: " + RelevanceAbsMax);
+        pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
+            pageEnriched.setRelevanceRel(pageEnriched.getRelevanceAbs() / relevanceAbsMax);
+        });
+
+        TreeSet<PageEnriched> pagesEnrichedWithWholeLemmasSorted = new TreeSet<>(new PageEnrichedComparatorByRelevanceRel());
+        pagesEnrichedWithWholeLemmasSorted.addAll(pagesEnrichedWithWholeLemmas.get());
+
+
+// отладочная информация
+        System.out.println("RelevanceAbsMax: " + relevanceAbsMax);
+        System.out.println();
+        System.out.println("=== pages info ====");
+        pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
+            System.out.println(pageEnriched.getPage().getId() + " - "
+                    + pageEnriched.getPage().getPath() + " - "
+                    + pageEnriched.getRelevanceAbs() + " - "
+                    + pageEnriched.getRelevanceRel());
+            System.out.println("    lemma list: ");
+            pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
+                System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
+            });
+        });
 
 
 

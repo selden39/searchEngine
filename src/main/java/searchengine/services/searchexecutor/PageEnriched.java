@@ -13,6 +13,7 @@ public class PageEnriched {
     private String title;
     private String snippet;
     private Double relevanceAbs;
+    private Double relevanceRel;
     private Set<LemmaEnriched> lemmaEnrichedSet;
 
     public PageEnriched(Page page){
