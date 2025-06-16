@@ -103,11 +103,7 @@ public class SearchServiceImpl implements SearchService{
                     .forEach(pageEnriched -> {
     // рассчитывать по каждой из страниц релевантность
     // Для каждой страницы рассчитывать абсолютную релевантность
-                        Double lemmaRank = pageRepository.findRankByPageAndLemma(
-                                pageEnriched.getPage().getId(),
-                                lemmaEnriched.getLemma()
-                        ).get(0);
-                        pageEnriched.increaseRelevanceAbs(lemmaRank);
+                        increaseRelevanceAbs(pageEnriched, lemmaEnriched);
                         pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, pageEnriched.getRelevanceAbs());
 
                         String title = getTitleFromPage(pageEnriched.getPage());
@@ -220,6 +216,14 @@ public class SearchServiceImpl implements SearchService{
             resultPageEnriched = new PageEnriched(pageOfPresence);
         }
         return resultPageEnriched;
+    }
+
+    private void increaseRelevanceAbs(PageEnriched pageEnriched, LemmaEnriched lemmaEnriched) {
+        Double lemmaRank = pageRepository.findRankByPageAndLemma(
+                pageEnriched.getPage().getId(),
+                lemmaEnriched.getLemma()
+        ).get(0);
+        pageEnriched.increaseRelevanceAbs(lemmaRank);
     }
 
     private String getTitleFromPage (Page page){
