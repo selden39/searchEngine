@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import searchengine.dto.SearchResponse;
 import searchengine.model.Page;
@@ -108,6 +109,9 @@ public class SearchServiceImpl implements SearchService{
                         ).get(0);
                         pageEnriched.increaseRelevanceAbs(lemmaRank);
                         pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, pageEnriched.getRelevanceAbs());
+
+                        String title = getTitleFromPage(pageEnriched.getPage());
+                        pageEnriched.setTitle(title);
                     });
 
     // список Enriched страниц добавляем в Enriched лемму
@@ -169,12 +173,13 @@ public class SearchServiceImpl implements SearchService{
                     + pageEnriched.getPage().getPath() + " - "
                     + pageEnriched.getRelevanceAbs() + " - "
                     + pageEnriched.getRelevanceRel());
+            System.out.println("  title: " + pageEnriched.getTitle());
             System.out.println("    lemma list: ");
             pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
                 System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
             });
         });
-        System.out.println(" === sorted === ");
+        System.out.println("\n === sorted === ");
         pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
             System.out.println(pageEnriched.getPage().getId() + " - "
                     + pageEnriched.getPage().getPath() + " - "
@@ -215,6 +220,10 @@ public class SearchServiceImpl implements SearchService{
             resultPageEnriched = new PageEnriched(pageOfPresence);
         }
         return resultPageEnriched;
+    }
+
+    private String getTitleFromPage (Page page){
+        return Jsoup.parse(page.getContent()).title();
     }
 
 }
