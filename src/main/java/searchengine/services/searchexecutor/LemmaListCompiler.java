@@ -22,6 +22,9 @@ public class LemmaListCompiler {
     public Set<LemmaEnriched> compileLemmaCollection() throws ServiceValidationException{
         Lemmatizer lemmatizer;
         HashMap<String, Integer> lemmaMap;
+    // TODO где то тут нужно сохранить исходную форму слова в леммуЕнрич
+        //  и по этой исходной форме искать на странице
+        // будет ли это список или только одна исходная форма ?????
         try {
             lemmatizer = new Lemmatizer();
             lemmaMap = lemmatizer.getLemmasFromText(query);

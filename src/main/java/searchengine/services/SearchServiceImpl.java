@@ -184,6 +184,7 @@ public class SearchServiceImpl implements SearchService{
             );
         });
 
+ // теперь ищем сниппет
 
 
         return new SearchResponse(true, query, searchSite, offset, limit);

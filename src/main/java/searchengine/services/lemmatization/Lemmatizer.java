@@ -41,7 +41,10 @@ public class Lemmatizer {
             }
 
             String normalWord = normalForms.get(0);
-
+            // TODO вот тут вот должно быть добавление как normalWord так и исходной формы
+            // а для этого нужен отдельный класс Лемма, которая бы содержала НормФорму и исходную форму
+            // и в lemmas нужно будет добавлять объект этого класса
+            BasicLemma basicLemma = new BasicLemma(word, normalWord);
             if (lemmas.containsKey(normalWord)) {
                 lemmas.put(normalWord, lemmas.get(normalWord) + 1);
             } else {
