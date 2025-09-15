@@ -73,7 +73,7 @@ public class SearchServiceImpl implements SearchService{
         lemmaReducedCollection.forEach(lemmaEnriched -> {
     // получаем из репо список страниц где она присутствует
             Set<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
-                    lemmaEnriched.getLemma(),
+                    lemmaEnriched.getBasicLemma().getNormalWord(),
                     searchSiteList.stream().map(site -> site.getId()).toList()
             );
     // для каждой страницы создаем Enriched страницу
@@ -127,7 +127,7 @@ public class SearchServiceImpl implements SearchService{
                 pageEnriched.addToLemmaEnrichList(lemmaEnriched);
             });
     // отладочная информация
-            System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
+            System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getBasicLemma().getNormalWord());
             System.out.println("    Лемма присутствует на страницах: ");
             lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank()
                     .forEach((k,v) -> System.out.print("    " + k.getPage().getId()  + " + " + k.getPage().getPath() + " |  "));
@@ -172,7 +172,7 @@ public class SearchServiceImpl implements SearchService{
             System.out.println("  title: " + pageEnriched.getTitle());
             System.out.println("    lemma list: ");
             pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
-                System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
+                System.out.println("    " + lemmaEnriched.getBasicLemma().getNormalWord() + " - " + lemmaEnriched.getFrequency());
             });
         });
         System.out.println("\n === sorted === ");
@@ -222,7 +222,7 @@ public class SearchServiceImpl implements SearchService{
     private void increaseRelevanceAbs(PageEnriched pageEnriched, LemmaEnriched lemmaEnriched) {
         Double lemmaRank = pageRepository.findRankByPageAndLemma(
                 pageEnriched.getPage().getId(),
-                lemmaEnriched.getLemma()
+                lemmaEnriched.getBasicLemma().getNormalWord()
         ).get(0);
         pageEnriched.increaseRelevanceAbs(lemmaRank);
     }

@@ -20,11 +20,11 @@ public class LemmasDataSaver {
 
     public void saveLemmasData() throws Exception {
         Lemmatizer lemmatizer = new Lemmatizer();
-        HashMap<String, Integer> lemmasFromPage = lemmatizer.getLemmasFromHtml(page.getContent());
+        HashMap<BasicLemma, Integer> lemmasFromPage = lemmatizer.getLemmasFromHtml(page.getContent());
         lemmasFromPage.forEach((lemmaFromPage,count) -> {
-            List<Lemma> existingLemmas = lemmaRepository.findByLemmaAndSite(lemmaFromPage, site);
+            List<Lemma> existingLemmas = lemmaRepository.findByLemmaAndSite(lemmaFromPage.getNormalWord(), site);
             if (existingLemmas.isEmpty()) {
-                Lemma lemma = addNewLemma(lemmaFromPage, count);
+                Lemma lemma = addNewLemma(lemmaFromPage.getNormalWord(), count);
                 addIndex(lemma, count);
             } else {
                 int currentFrequency = existingLemmas.get(0).getFrequency();

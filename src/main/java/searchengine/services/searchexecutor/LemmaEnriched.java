@@ -3,6 +3,7 @@ package searchengine.services.searchexecutor;
 import lombok.Getter;
 import lombok.Setter;
 import searchengine.model.Page;
+import searchengine.services.lemmatization.BasicLemma;
 
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +12,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class LemmaEnriched {
-    private final String lemma;
+    private BasicLemma basicLemma;
     private Integer pageCount;
     private Double frequency;
     private Set<Page> pagesOfPresence;
@@ -21,13 +22,8 @@ public class LemmaEnriched {
  */
     private Map<PageEnriched, Double> pagesEnrichedOfPresenceWithLemmaRank;
 
-    public LemmaEnriched(String lemma, Double frequency){
-        this.lemma = lemma;
-        this.frequency = frequency;
-    }
-
-    public LemmaEnriched(String lemma, Integer pageCount,  Double frequency ){
-        this.lemma = lemma;
+    public LemmaEnriched(BasicLemma basicLemma, Integer pageCount,  Double frequency) {
+        this.basicLemma = basicLemma;
         this.pageCount = pageCount;
         this.frequency = frequency;
     }
@@ -37,11 +33,11 @@ public class LemmaEnriched {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LemmaEnriched that = (LemmaEnriched) o;
-        return Objects.equals(lemma, that.lemma);
+        return Objects.equals(basicLemma, that.basicLemma);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lemma);
+        return Objects.hash(basicLemma);
     }
 }
