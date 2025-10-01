@@ -9,16 +9,12 @@ import searchengine.model.Site;
 import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.searchexecutor.LemmaEnriched;
-import searchengine.services.searchexecutor.LemmaListCompiler;
-import searchengine.services.searchexecutor.PageEnriched;
-import searchengine.services.searchexecutor.PageEnrichedComparatorByRelevanceRel;
+import searchengine.services.searchexecutor.*;
 import searchengine.utils.UrlHandler;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -185,7 +181,12 @@ public class SearchServiceImpl implements SearchService{
         });
 
  // теперь ищем сниппет
+        pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
+            SnippetReceiver snippetReceiver = new SnippetReceiver(pageEnriched);
+            snippetReceiver.getMaxFrequencyLemmaSnippet();
 
+
+        });
 
         return new SearchResponse(true, query, searchSite, offset, limit);
     }

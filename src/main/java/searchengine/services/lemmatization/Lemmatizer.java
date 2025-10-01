@@ -54,6 +54,7 @@ public class Lemmatizer {
         return lemmas;
     }
 
+    //TODO вынести в utils. Используется в 2 местах - SnippetReceiver
     private static String convertHtml2text (String html){
         return Jsoup.parse(html).text();
     }
