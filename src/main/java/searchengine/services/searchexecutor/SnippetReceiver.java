@@ -13,7 +13,7 @@ public class SnippetReceiver {
     private String addonBefore;
     private String addonAfter;
     private final String NO_SNIPPET = "Snippet for this page couldn't be received";
-    private final int ADDON_OF_SNIPPET_LENGTH = 15;
+    private final int ADDON_OF_SNIPPET_LENGTH = 25;
     private final String BOLDING_START_SYMBOL = "<b>";
     private final String BOLDING_END_SYMBOL = "</b>";
 
@@ -39,25 +39,14 @@ public class SnippetReceiver {
                 lemmaEnriched -> {
                     maxFrquenceLemmaEnriched = lemmaEnriched;
                     fillSnippetByWord();
-                    //fillSnippetByWord(lemmaEnriched.getBasicLemma().getOriginalWord());
                 },
                 () ->  fillDefaultSnippet()
         );
     }
 
-    //TODO все это проверить.
     public void fillSnippetByWord(){
-        String text = convertHtml2text(pageEnriched.getPage().getContent());
         String originalWord = maxFrquenceLemmaEnriched.getBasicLemma().getOriginalWord();
-        text = "There is a book. This bbok нашла попала сша. экономика сша i попала s one of the greatest country ";
-  //      text = "There Экономика is a Сша. This bbok fr";
-        text = "There is a book. This bbok нала сша. экономика ";
-        text = "There is a book. This bbok текст текс наа сша. экономика 1";
-        text = "There is a book. This bbok текст текс наа сша.. экономика 1";
-        text = "There is a book. This bbok текст текс наа сша.ю. экономика 1";
-        text = "There экономика is a book. This bbok текст текс наа сша.ю.  1";
-        text = "There экономика is a book. This bbok текст текс наа сша.ю";
-        text = "There экономика is a сшА. Сша  текст попалаа сша.ю";
+        String text = convertHtml2text(pageEnriched.getPage().getContent());
         int indexStart = text.toLowerCase().indexOf(originalWord.toLowerCase());
         int indexEnd = indexStart + originalWord.toLowerCase().length();
 
@@ -116,11 +105,13 @@ public class SnippetReceiver {
     }
 
     private void fillSnippet() {
-        maxFrequencyLemmaSnippet = new StringBuilder(addonBefore)
+        maxFrequencyLemmaSnippet = new StringBuilder("...")
+                .append(addonBefore)
                 .append(BOLDING_START_SYMBOL)
                 .append(maxFrquenceLemmaEnriched.getBasicLemma().getOriginalWord())
                 .append(BOLDING_END_SYMBOL)
                 .append(addonAfter)
+                .append("...")
                 .toString();
     }
 }
