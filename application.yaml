@@ -20,14 +20,10 @@ spring:
 
 indexing-settings:
   configSites:
-    - url: https://lEnta.ru
-      name: Лента.ру
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
-    - url: https://translate.google.ru/
-      name: translate
-    - url: https://radiomv.ru/
-      name: policeRadio
+    - url: https://nikoartgallery.com/
+      name: nikoartgallery
+    - url: https://www.playback.ru/
+      name: playback
 
 request-parameter:
   userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"

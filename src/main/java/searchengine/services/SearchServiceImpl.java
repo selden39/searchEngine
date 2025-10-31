@@ -151,10 +151,14 @@ public class SearchServiceImpl implements SearchService{
         pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
             pageEnriched.setRelevanceRel(pageEnriched.getRelevanceAbs() / relevanceAbsMax);
         });
-
         TreeSet<PageEnriched> pagesEnrichedWithWholeLemmasSorted = new TreeSet<>(new PageEnrichedComparatorByRelevanceRel());
         pagesEnrichedWithWholeLemmasSorted.addAll(pagesEnrichedWithWholeLemmas.get());
 
+        // теперь ищем и добавляем сниппет
+        pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
+            SnippetReceiver snippetReceiver = new SnippetReceiver(pageEnriched);
+            pageEnriched.setSnippet(snippetReceiver.getMaxFrequencyLemmaSnippet());
+        });
 
 // отладочная информация
         System.out.println("RelevanceAbsMax: " + relevanceAbsMax);
@@ -170,6 +174,7 @@ public class SearchServiceImpl implements SearchService{
             pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
                 System.out.println("    " + lemmaEnriched.getBasicLemma().getNormalWord() + " - " + lemmaEnriched.getFrequency());
             });
+            System.out.println("   snippet: " + pageEnriched.getSnippet());
         });
         System.out.println("\n === sorted === ");
         pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
@@ -180,13 +185,7 @@ public class SearchServiceImpl implements SearchService{
             );
         });
 
- // теперь ищем сниппет
-        pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
-            SnippetReceiver snippetReceiver = new SnippetReceiver(pageEnriched);
-            snippetReceiver.getMaxFrequencyLemmaSnippet();
 
-
-        });
 
         return new SearchResponse(true, query, searchSite, offset, limit);
     }
