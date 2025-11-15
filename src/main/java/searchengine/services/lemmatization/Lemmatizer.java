@@ -16,14 +16,14 @@ public class Lemmatizer {
         this.luceneMorphology = new RussianLuceneMorphology();
     }
 
-    public HashMap<String, Integer> getLemmasFromHtml(String html){
+    public HashMap<BasicLemma, Integer> getLemmasFromHtml(String html){
         String text = convertHtml2text(html);
         return getLemmasFromText(text);
     }
 
-    public HashMap<String, Integer> getLemmasFromText(String text){
+    public HashMap<BasicLemma, Integer> getLemmasFromText(String text){
         String[] wordsArray = splitTextIntoWords(text);
-        HashMap<String, Integer> lemmas = new HashMap<>();
+        HashMap<BasicLemma, Integer> lemmas = new HashMap<>();
 
         for (String word : wordsArray) {
             if (word.isBlank()){
@@ -41,16 +41,20 @@ public class Lemmatizer {
             }
 
             String normalWord = normalForms.get(0);
-
-            if (lemmas.containsKey(normalWord)) {
-                lemmas.put(normalWord, lemmas.get(normalWord) + 1);
+            // TODO вот тут вот должно быть добавление как normalWord так и исходной формы
+            // а для этого нужен отдельный класс Лемма, которая бы содержала НормФорму и исходную форму
+            // и в lemmas нужно будет добавлять объект этого класса
+            BasicLemma basicLemma = new BasicLemma(word, normalWord);
+            if (lemmas.containsKey(basicLemma)) {
+                lemmas.put(basicLemma, lemmas.get(basicLemma) + 1);
             } else {
-                lemmas.put(normalWord, 1);
+                lemmas.put(basicLemma, 1);
             }
         }
         return lemmas;
     }
 
+    //TODO вынести в utils. Используется в 2 местах - SnippetReceiver
     private static String convertHtml2text (String html){
         return Jsoup.parse(html).text();
     }

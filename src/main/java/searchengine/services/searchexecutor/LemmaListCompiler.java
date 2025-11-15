@@ -5,6 +5,7 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repositories.PageRepository;
 import searchengine.services.ServiceValidationException;
+import searchengine.services.lemmatization.BasicLemma;
 import searchengine.services.lemmatization.Lemmatizer;
 
 import java.util.*;
@@ -21,7 +22,10 @@ public class LemmaListCompiler {
 
     public Set<LemmaEnriched> compileLemmaCollection() throws ServiceValidationException{
         Lemmatizer lemmatizer;
-        HashMap<String, Integer> lemmaMap;
+        HashMap<BasicLemma, Integer> lemmaMap;
+    // TODO где то тут нужно сохранить исходную форму слова в леммуЕнрич
+        //  и по этой исходной форме искать на странице
+        // будет ли это список или только одна исходная форма ?????
         try {
             lemmatizer = new Lemmatizer();
             lemmaMap = lemmatizer.getLemmasFromText(query);
@@ -33,7 +37,7 @@ public class LemmaListCompiler {
             throw new ServiceValidationException(400, false, ERROR_DESC_THERE_IS_NO_LEMMAS_IN_QUERY);
         }
 
-        List<String> lemmaList = lemmaMap.entrySet().stream()
+        List<BasicLemma> lemmaList = lemmaMap.entrySet().stream()
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());
         Set<LemmaEnriched> lemmaReducedCollection = prepareReducedLemmaCollection(lemmaList, searchSiteList);
@@ -41,22 +45,31 @@ public class LemmaListCompiler {
         return lemmaReducedCollection;
     }
 
-    private Set<LemmaEnriched> prepareReducedLemmaCollection(List<String> lemmaList, List<Site> siteList) {
+    private Set<LemmaEnriched> prepareReducedLemmaCollection(List<BasicLemma> lemmaList, List<Site> siteList) {
         List<Page> pageList = pageRepository.findBySiteIn(siteList);
 
         TreeSet<LemmaEnriched> lemmaEnrichedSet = new TreeSet<>(Comparator.comparing(LemmaEnriched::getFrequency)
-                .thenComparing(LemmaEnriched::getLemma));
+                .thenComparing(Comparator.comparing(le -> le.getBasicLemma().getNormalWord())));
         pageRepository.findLemmasCountByPage(
                         siteList.stream().map(site -> site.getId()).toList(),
-                        lemmaList)
+                        lemmaList.stream().map(basicLemma -> basicLemma.getNormalWord()).toList())
                 .forEach(str -> {
                     String queryLemma = str.substring(0, str.indexOf(','));
                     Integer queryCount = Integer.valueOf(str.substring(str.indexOf(',') + 1));
                     Double frequency = queryCount / (double) pageList.size();
                     if(frequency < LIMIT_OF_FREQUENCY) {
-                        lemmaEnrichedSet.add(new LemmaEnriched(queryLemma, queryCount, frequency));
+                        addLemmaEnrichedToSet(lemmaList, lemmaEnrichedSet, queryLemma, queryCount, frequency);
                     }
                 });
         return lemmaEnrichedSet;
+    }
+
+    private void addLemmaEnrichedToSet(List<BasicLemma> lemmaList, TreeSet<LemmaEnriched> lemmaEnrichedSet,
+                                       String queryLemma, Integer queryCount, Double frequency){
+        lemmaList.forEach(basicLemma -> {
+            if (basicLemma.getNormalWord().equals(queryLemma)) {
+                lemmaEnrichedSet.add(new LemmaEnriched(basicLemma, queryCount, frequency));
+            }
+        });
     }
 }

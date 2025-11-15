@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import searchengine.dto.SearchResponse;
 import searchengine.model.Page;
@@ -8,16 +9,12 @@ import searchengine.model.Site;
 import searchengine.model.Status;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.searchexecutor.LemmaEnriched;
-import searchengine.services.searchexecutor.LemmaListCompiler;
-import searchengine.services.searchexecutor.PageEnriched;
-import searchengine.services.searchexecutor.PageEnrichedComparatorByRelevanceRel;
+import searchengine.services.searchexecutor.*;
 import searchengine.utils.UrlHandler;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -72,7 +69,7 @@ public class SearchServiceImpl implements SearchService{
         lemmaReducedCollection.forEach(lemmaEnriched -> {
     // получаем из репо список страниц где она присутствует
             Set<Page> pageOfPresenceList = pageRepository.findPagesListByLemmaAndSitelist(
-                    lemmaEnriched.getLemma(),
+                    lemmaEnriched.getBasicLemma().getNormalWord(),
                     searchSiteList.stream().map(site -> site.getId()).toList()
             );
     // для каждой страницы создаем Enriched страницу
@@ -102,12 +99,11 @@ public class SearchServiceImpl implements SearchService{
                     .forEach(pageEnriched -> {
     // рассчитывать по каждой из страниц релевантность
     // Для каждой страницы рассчитывать абсолютную релевантность
-                        Double lemmaRank = pageRepository.findRankByPageAndLemma(
-                                pageEnriched.getPage().getId(),
-                                lemmaEnriched.getLemma()
-                        ).get(0);
-                        pageEnriched.increaseRelevanceAbs(lemmaRank);
+                        increaseRelevanceAbs(pageEnriched, lemmaEnriched);
                         pageEnrichedOfPresenceListWithLemmaRank.put(pageEnriched, pageEnriched.getRelevanceAbs());
+
+                        String title = getTitleFromPage(pageEnriched.getPage());
+                        pageEnriched.setTitle(title);
                     });
 
     // список Enriched страниц добавляем в Enriched лемму
@@ -127,7 +123,7 @@ public class SearchServiceImpl implements SearchService{
                 pageEnriched.addToLemmaEnrichList(lemmaEnriched);
             });
     // отладочная информация
-            System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getLemma());
+            System.out.println(lemmaEnriched.getFrequency() + " - " + lemmaEnriched.getBasicLemma().getNormalWord());
             System.out.println("    Лемма присутствует на страницах: ");
             lemmaEnriched.getPagesEnrichedOfPresenceWithLemmaRank()
                     .forEach((k,v) -> System.out.print("    " + k.getPage().getId()  + " + " + k.getPage().getPath() + " |  "));
@@ -155,10 +151,14 @@ public class SearchServiceImpl implements SearchService{
         pagesEnrichedWithWholeLemmas.get().forEach(pageEnriched -> {
             pageEnriched.setRelevanceRel(pageEnriched.getRelevanceAbs() / relevanceAbsMax);
         });
-
         TreeSet<PageEnriched> pagesEnrichedWithWholeLemmasSorted = new TreeSet<>(new PageEnrichedComparatorByRelevanceRel());
         pagesEnrichedWithWholeLemmasSorted.addAll(pagesEnrichedWithWholeLemmas.get());
 
+        // теперь ищем и добавляем сниппет
+        pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
+            SnippetReceiver snippetReceiver = new SnippetReceiver(pageEnriched);
+            pageEnriched.setSnippet(snippetReceiver.getMaxFrequencyLemmaSnippet());
+        });
 
 // отладочная информация
         System.out.println("RelevanceAbsMax: " + relevanceAbsMax);
@@ -169,12 +169,14 @@ public class SearchServiceImpl implements SearchService{
                     + pageEnriched.getPage().getPath() + " - "
                     + pageEnriched.getRelevanceAbs() + " - "
                     + pageEnriched.getRelevanceRel());
+            System.out.println("  title: " + pageEnriched.getTitle());
             System.out.println("    lemma list: ");
             pageEnriched.getLemmaEnrichedSet().forEach(lemmaEnriched -> {
-                System.out.println("    " + lemmaEnriched.getLemma() + " - " + lemmaEnriched.getFrequency());
+                System.out.println("    " + lemmaEnriched.getBasicLemma().getNormalWord() + " - " + lemmaEnriched.getFrequency());
             });
+            System.out.println("   snippet: " + pageEnriched.getSnippet());
         });
-        System.out.println(" === sorted === ");
+        System.out.println("\n === sorted === ");
         pagesEnrichedWithWholeLemmasSorted.forEach(pageEnriched -> {
             System.out.println(pageEnriched.getPage().getId() + " - "
                     + pageEnriched.getPage().getPath() + " - "
@@ -215,6 +217,18 @@ public class SearchServiceImpl implements SearchService{
             resultPageEnriched = new PageEnriched(pageOfPresence);
         }
         return resultPageEnriched;
+    }
+
+    private void increaseRelevanceAbs(PageEnriched pageEnriched, LemmaEnriched lemmaEnriched) {
+        Double lemmaRank = pageRepository.findRankByPageAndLemma(
+                pageEnriched.getPage().getId(),
+                lemmaEnriched.getBasicLemma().getNormalWord()
+        ).get(0);
+        pageEnriched.increaseRelevanceAbs(lemmaRank);
+    }
+
+    private String getTitleFromPage (Page page){
+        return Jsoup.parse(page.getContent()).title();
     }
 
 }
